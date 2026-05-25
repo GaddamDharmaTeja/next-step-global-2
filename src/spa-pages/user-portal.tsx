@@ -1,0 +1,389 @@
+import { useGetMyProfile, useListPrograms } from "@workspace/api-client-react";
+import { Link, Redirect, useLocation } from "wouter";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getGetMyProfileQueryKey } from "@workspace/api-client-react";
+import { listMyInquiries, signOut } from "@/lib/api";
+import { listMyStudentDocuments, uploadStudentDocument } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import {
+  ArrowUpRight,
+  BellRing,
+  BookOpen,
+  CalendarDays,
+  ChevronRight,
+  Globe2,
+  GraduationCap,
+  Mail,
+  Phone,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
+import { BrandLogo } from "@/components/layout/brand-logo";
+
+function getStatusClasses(status: "pending" | "contacted" | "resolved") {
+  if (status === "resolved") {
+    return "bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-200";
+  }
+
+  if (status === "contacted") {
+    return "bg-amber-500/10 text-amber-700 ring-1 ring-amber-200";
+  }
+
+  return "bg-sky-500/10 text-sky-700 ring-1 ring-sky-200";
+}
+
+export default function UserPortalPage() {
+  const { data: profile, isLoading } = useGetMyProfile({
+    query: { retry: false, refetchOnWindowFocus: false } as any,
+  });
+  const { data: programs } = useListPrograms();
+  const { data: inquiries } = useQuery({
+    queryKey: ["/api/inquiries/mine"],
+    queryFn: listMyInquiries,
+    enabled: Boolean(profile),
+  });
+  const { data: documents } = useQuery({
+    queryKey: ["/api/student-documents/mine"],
+    queryFn: listMyStudentDocuments,
+    enabled: Boolean(profile),
+  });
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">Loading...</div>;
+  }
+
+  if (!profile) {
+    return <Redirect to="/sign-in" />;
+  }
+
+  if (profile.role === "admin" || profile.role === "owner") {
+    return <Redirect to="/admin" />;
+  }
+
+  const displayedPrograms = Array.isArray(programs) ? programs.slice(0, 4) : [];
+  const myInquiries = Array.isArray(inquiries) ? inquiries : [];
+  const documentList = Array.isArray(documents) ? documents : [];
+  const firstName = profile.name?.trim().split(/\s+/)[0] || "Student";
+  const pendingCount = myInquiries.filter((entry) => entry.status === "pending").length;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      await queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+      setLocation("/sign-in");
+    } catch {
+      toast({ title: "Failed to sign out", variant: "destructive" });
+    }
+  };
+
+  const handleDocumentUpload = async (file: File | null) => {
+    if (!file) return;
+    try {
+      await uploadStudentDocument({ file });
+      await queryClient.invalidateQueries({ queryKey: ["/api/student-documents/mine"] });
+      toast({ title: "Document uploaded" });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "Failed to upload document", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(14,47,109,0.16),_transparent_22%),radial-gradient(circle_at_top_right,_rgba(217,163,26,0.16),_transparent_20%),linear-gradient(180deg,_#fdfcf7_0%,_#eef4ff_42%,_#f7fafc_100%)] text-slate-950">
+      <header className="sticky top-0 z-20 border-b border-white/50 bg-white/75 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <BrandLogo
+              frameClassName="flex h-[58px] items-center rounded-2xl bg-white px-3 shadow-lg shadow-slate-900/10"
+              imageClassName="h-10 w-auto max-w-[170px] object-contain"
+            />
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#a77400]">Student Portal</div>
+              <div className="text-2xl font-semibold tracking-tight text-slate-900">NextStep</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link href="/">
+              <Button variant="ghost" className="rounded-full px-4 text-slate-700 hover:bg-slate-100">
+                Back to Home
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              className="rounded-full border-slate-300 bg-white/80 px-5 shadow-sm"
+              onClick={handleSignOut}
+            >
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(135deg,rgba(8,17,32,0.97)_0%,rgba(14,47,109,0.94)_48%,rgba(24,69,141,0.9)_100%)] px-6 py-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)] sm:px-8 lg:px-10">
+          <div className="absolute -right-10 top-0 h-40 w-40 rounded-full bg-[#e0b43b]/20 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-32 w-32 rounded-full bg-[#9bbcf1]/15 blur-3xl" />
+
+          <div className="relative grid gap-8 lg:grid-cols-[1.6fr_0.9fr] lg:items-end">
+            <div className="space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm text-slate-100/90 backdrop-blur">
+                <Sparkles className="h-4 w-4 text-amber-300" />
+                Your global education journey, organized in one place
+              </div>
+
+              <div className="space-y-3">
+                <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+                  Welcome back, {firstName}.
+                </h1>
+                <p className="max-w-2xl text-base leading-7 text-slate-200 sm:text-lg">
+                  Track your consultation progress, revisit recommended programs, and keep your NextStep application journey moving with confidence.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="#programs"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+                >
+                  Explore Programs
+                  <ArrowUpRight className="h-4 w-4" />
+                </a>
+                <a
+                  href="#inquiries"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/15"
+                >
+                  View My Inquiries
+                  <ChevronRight className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              <div className="rounded-[1.5rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="text-sm text-slate-300">Inquiries submitted</div>
+                <div className="mt-3 text-3xl font-semibold">{myInquiries.length}</div>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="text-sm text-slate-300">Awaiting response</div>
+                <div className="mt-3 text-3xl font-semibold">{pendingCount}</div>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="text-sm text-slate-300">Recommended tracks</div>
+                <div className="mt-3 text-3xl font-semibold">{displayedPrograms.length}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+          <Card className="overflow-hidden rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+            <div className="border-b border-slate-200/80 bg-[linear-gradient(135deg,rgba(14,165,233,0.08),rgba(245,158,11,0.08))] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Profile</div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Personal Snapshot</h2>
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/10">
+                  <UserRound className="h-7 w-7" />
+                </div>
+              </div>
+            </div>
+
+            <CardContent className="space-y-5 p-6">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Member</div>
+                <div className="mt-2 text-xl font-semibold text-slate-900">{profile.name || "Profile pending"}</div>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-white p-4">
+                  <Mail className="mt-0.5 h-5 w-5 text-sky-700" />
+                  <div>
+                    <div className="text-sm font-medium text-slate-500">Email</div>
+                    <div className="text-sm font-semibold text-slate-900 break-all">{profile.email}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-white p-4">
+                  <Phone className="mt-0.5 h-5 w-5 text-amber-600" />
+                  <div>
+                    <div className="text-sm font-medium text-slate-500">Phone</div>
+                    <div className="text-sm font-semibold text-slate-900">{profile.phone || "Not added yet"}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-white p-4">
+                  <Globe2 className="mt-0.5 h-5 w-5 text-emerald-600" />
+                  <div>
+                    <div className="text-sm font-medium text-slate-500">Portal access</div>
+                    <div className="text-sm font-semibold capitalize text-slate-900">{profile.role}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-6">
+            <Card
+              id="inquiries"
+              className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur"
+            >
+              <div className="flex items-center justify-between border-b border-slate-200/80 p-6">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Consultations</div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">My Inquiries</h2>
+                  <p className="mt-2 text-sm text-slate-600">A live view of your conversations and current status.</p>
+                </div>
+                <div className="hidden h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 sm:flex">
+                  <BellRing className="h-7 w-7" />
+                </div>
+              </div>
+
+              <CardContent className="p-6">
+                {myInquiries.length === 0 ? (
+                  <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-[linear-gradient(135deg,#f8fbff_0%,#f8fafc_100%)] px-6 py-12 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
+                      <CalendarDays className="h-8 w-8 text-sky-700" />
+                    </div>
+                    <h3 className="mt-5 text-xl font-semibold text-slate-900">No inquiries yet</h3>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+                      Once you submit a consultation request, you&apos;ll see its progress here with clear status updates.
+                    </p>
+                    <Link href="/">
+                      <Button className="mt-6 rounded-full px-5">Start a Consultation</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myInquiries.map((inq) => (
+                      <div
+                        key={inq.id}
+                        className="group rounded-[1.5rem] border border-slate-200/80 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg"
+                      >
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                              <BookOpen className="h-3.5 w-3.5" />
+                              Inquiry #{inq.id}
+                            </div>
+                            <h3 className="text-lg font-semibold text-slate-900">{inq.subject}</h3>
+                            <p className="text-sm leading-6 text-slate-600">{inq.message}</p>
+                            <div className="text-xs font-medium text-slate-500">
+                              Submitted on {new Date(inq.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+
+                          <div
+                            className={`inline-flex w-fit items-center rounded-full px-3 py-1.5 text-sm font-semibold capitalize ${getStatusClasses(inq.status)}`}
+                          >
+                            {inq.status}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card
+              id="programs"
+              className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur"
+            >
+              <div className="flex items-center justify-between border-b border-slate-200/80 p-6">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Discover</div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Recommended Programs</h2>
+                  <p className="mt-2 text-sm text-slate-600">Curated options aligned with popular study destinations.</p>
+                </div>
+                <div className="hidden h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 sm:flex">
+                  <GraduationCap className="h-7 w-7" />
+                </div>
+              </div>
+
+              <CardContent className="p-6">
+                <div className="grid gap-5 md:grid-cols-2">
+                  {displayedPrograms.map((prog) => (
+                    <div
+                      key={prog.id}
+                      className="group overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white transition hover:-translate-y-1 hover:shadow-xl"
+                    >
+                      <div className="relative h-48 overflow-hidden bg-slate-100">
+                        {prog.imageUrl ? (
+                          <img
+                            src={prog.imageUrl}
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            alt={prog.title}
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#e0f2fe_0%,#f8fafc_100%)] text-slate-500">
+                            Program image coming soon
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-slate-950/5 to-transparent" />
+                        <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-800">
+                          {prog.country}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 p-5">
+                        <div>
+                          <h3 className="text-2xl font-semibold tracking-tight text-slate-900">{prog.title}</h3>
+                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{prog.description}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+                            {prog.duration}
+                          </div>
+                          <Link href="/">
+                            <span className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700 transition group-hover:gap-3">
+                              Learn more
+                              <ChevronRight className="h-4 w-4" />
+                            </span>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div className="flex items-center justify-between border-b border-slate-200/80 p-6">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Documents</div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">My Uploads</h2>
+                  <p className="mt-2 text-sm text-slate-600">Upload transcripts, SOPs, and supporting files for review.</p>
+                </div>
+                <Input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="max-w-[240px]" onChange={(e) => handleDocumentUpload(e.target.files?.[0] || null)} />
+              </div>
+              <CardContent className="space-y-3 p-6">
+                {documentList.length === 0 && <div className="text-sm text-slate-600">No documents uploaded yet.</div>}
+                {documentList.map((doc) => (
+                  <div key={doc.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4">
+                    <div>
+                      <div className="font-medium text-slate-900">{doc.fileName}</div>
+                      <div className="text-xs text-slate-500">{new Date(doc.uploadedAt).toLocaleString()}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold capitalize text-slate-900">{doc.status}</div>
+                      {doc.note && <div className="text-xs text-slate-500">{doc.note}</div>}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}

@@ -1,0 +1,40 @@
+import { Router, type IRouter } from "express";
+import healthRouter from "./health";
+import usersRouter from "./users";
+import inquiriesRouter from "./inquiries";
+import programsRouter from "./programs";
+import galleryRouter from "./gallery";
+import testimonialsRouter from "./testimonials";
+import notificationsRouter from "./notifications";
+import adminRouter from "./admin";
+import destinationsRouter from "./destinations";
+import consultantsRouter from "./consultants";
+import siteContentRouter from "./site-content";
+import appointmentsRouter from "./appointments";
+import ownerSettingsRouter from "./owner-settings";
+import auditLogsRouter from "./audit-logs";
+import adminInvitesRouter from "./admin-invites";
+import notificationTemplatesRouter from "./notification-templates";
+import studentDocumentsRouter from "./student-documents";
+
+const router: IRouter = Router();
+
+router.use(healthRouter);
+router.use("/users", usersRouter);
+router.use("/inquiries", inquiriesRouter);
+router.use("/programs", programsRouter);
+router.use("/gallery", galleryRouter);
+router.use("/testimonials", testimonialsRouter);
+router.use("/destinations", destinationsRouter);
+router.use("/consultants", consultantsRouter);
+router.use("/site-content", siteContentRouter);
+router.use("/appointments", appointmentsRouter);
+router.use("/notifications", notificationsRouter);
+router.use("/notification-templates", notificationTemplatesRouter);
+router.use("/student-documents", studentDocumentsRouter);
+router.use("/owner-settings", ownerSettingsRouter);
+router.use("/audit-logs", auditLogsRouter);
+router.use("/admin-invites", adminInvitesRouter);
+router.use("/admin", adminRouter);
+
+export default router;

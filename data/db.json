@@ -1,0 +1,431 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "clerkId": "local-admin",
+      "email": "admin@nextstep.local",
+      "name": "NextStep Admin",
+      "phone": null,
+      "role": "admin",
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    }
+  ],
+  "inquiries": [],
+  "programs": [
+    {
+      "id": 1,
+      "title": "MBA in Canada",
+      "description": "Career-focused MBA pathways in top Canadian business schools.",
+      "country": "Canada",
+      "duration": "2 Years",
+      "imageUrl": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?q=80&w=1200&auto=format&fit=crop",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "title": "MS in Australia",
+      "description": "Industry-aligned postgraduate programs with strong internship options.",
+      "country": "Australia",
+      "duration": "2 Years",
+      "imageUrl": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    }
+  ],
+  "gallery": [],
+  "testimonials": [],
+  "destinations": [
+    {
+      "id": 1,
+      "slug": "united-kingdom",
+      "code": "GB",
+      "name": "United Kingdom",
+      "description": "The UK is home to some of the world's most prestigious universities, offering world-class education, a rich cultural experience, and strong graduate outcomes.",
+      "overview": "The UK combines globally respected degrees, shorter course durations, and strong links to industry. Students benefit from a rich academic culture, international campuses, and practical graduate routes.",
+      "highlights": [
+        "World-renowned universities",
+        "Post-Study Work Visa up to 2 years",
+        "Rich academic tradition",
+        "Diverse multicultural environment",
+        "Strong research opportunities"
+      ],
+      "universities": [
+        "University of Oxford",
+        "University of Cambridge",
+        "Imperial College London",
+        "UCL",
+        "University of Edinburgh"
+      ],
+      "tuition": "GBP 15,000 - 35,000/year",
+      "requirements": [
+        "IELTS/TOEFL or accepted English test",
+        "Academic transcripts",
+        "Statement of purpose",
+        "References",
+        "Financial documents"
+      ],
+      "workOptions": [
+        "Up to 20 hours/week during term",
+        "Full-time during eligible breaks",
+        "Graduate Route after studies"
+      ],
+      "accent": "from-blue-50 to-slate-50",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "slug": "united-states",
+      "code": "US",
+      "name": "United States",
+      "description": "The USA offers unmatched academic resources, research funding, flexible course choices, and career opportunities at globally recognized institutions.",
+      "overview": "The USA offers unparalleled academic resources, research funding, and career opportunities at globally recognized institutions. International students benefit from vibrant campus life and extensive alumni networks.",
+      "highlights": [
+        "Top-ranked universities worldwide",
+        "CPT and OPT work opportunities",
+        "Diverse program offerings",
+        "Cutting-edge research facilities",
+        "Strong entrepreneurship ecosystem"
+      ],
+      "universities": [
+        "MIT",
+        "Harvard University",
+        "Stanford University",
+        "Caltech",
+        "University of Chicago"
+      ],
+      "tuition": "USD 20,000 - 55,000/year",
+      "requirements": [
+        "SAT/ACT or GRE/GMAT where required",
+        "IELTS/TOEFL or Duolingo",
+        "Academic transcripts",
+        "Statement of purpose",
+        "Financial documents"
+      ],
+      "workOptions": [
+        "On-campus work options",
+        "CPT during eligible programs",
+        "OPT after graduation"
+      ],
+      "accent": "from-rose-50 to-slate-50",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "slug": "canada",
+      "code": "CA",
+      "name": "Canada",
+      "description": "Canada is a leading destination for international students thanks to welcoming immigration pathways, high quality of life, and practical work options.",
+      "overview": "Canada is known for safe cities, welcoming policies, respected universities, and strong post-study pathways. It is a practical option for students planning long-term settlement.",
+      "highlights": [
+        "Post-Graduation Work Permit up to 3 years",
+        "Pathway to permanent residency",
+        "Safe and welcoming environment",
+        "Affordable tuition compared with USA/UK",
+        "Bilingual English and French culture"
+      ],
+      "universities": [
+        "University of Toronto",
+        "McGill University",
+        "University of British Columbia",
+        "University of Waterloo",
+        "McMaster University"
+      ],
+      "tuition": "CAD 15,000 - 35,000/year",
+      "requirements": [
+        "IELTS/PTE/TOEFL",
+        "Academic transcripts",
+        "Statement of purpose",
+        "GIC and financial proof",
+        "Study permit documents"
+      ],
+      "workOptions": [
+        "Part-time work during studies",
+        "Co-op options in eligible programs",
+        "PGWP after graduation"
+      ],
+      "accent": "from-emerald-50 to-slate-50",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "slug": "australia",
+      "code": "AU",
+      "name": "Australia",
+      "description": "Australia combines globally respected universities with industry-linked education, excellent lifestyle, and practical post-study work routes.",
+      "overview": "Australia offers career-oriented degrees, vibrant student cities, and strong graduate work opportunities. It is especially popular for business, technology, healthcare, and research pathways.",
+      "highlights": [
+        "Post-study work rights",
+        "Strong internship options",
+        "High quality of life",
+        "Globally ranked universities",
+        "Popular STEM and business pathways"
+      ],
+      "universities": [
+        "University of Melbourne",
+        "Australian National University",
+        "University of Sydney",
+        "UNSW",
+        "Monash University"
+      ],
+      "tuition": "AUD 22,000 - 45,000/year",
+      "requirements": [
+        "IELTS/PTE/TOEFL",
+        "Academic transcripts",
+        "Genuine student documents",
+        "Financial evidence",
+        "Health cover"
+      ],
+      "workOptions": [
+        "Part-time work during term",
+        "Full-time during breaks",
+        "Temporary graduate visa options"
+      ],
+      "accent": "from-amber-50 to-slate-50",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "slug": "europe",
+      "code": "EU",
+      "name": "Europe",
+      "description": "Europe offers diverse English-taught programs, affordable tuition, cross-border mobility, and strong options across business, technology, and research.",
+      "overview": "Europe gives students access to affordable public education, English-taught degrees, strong research hubs, and a rich cross-cultural academic experience.",
+      "highlights": [
+        "Affordable public universities",
+        "English-taught degree options",
+        "Schengen travel exposure",
+        "Strong research and innovation hubs",
+        "Multiple scholarship routes"
+      ],
+      "universities": [
+        "Technical University of Munich",
+        "KU Leuven",
+        "University of Amsterdam",
+        "Sorbonne University",
+        "Lund University"
+      ],
+      "tuition": "EUR 5,000 - 25,000/year",
+      "requirements": [
+        "Academic transcripts",
+        "English or local language proof",
+        "Motivation letter",
+        "CV",
+        "Financial proof"
+      ],
+      "workOptions": [
+        "Country-specific part-time work",
+        "Internship pathways",
+        "Post-study permits in selected countries"
+      ],
+      "accent": "from-cyan-50 to-slate-50",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "slug": "new-zealand",
+      "code": "NZ",
+      "name": "New Zealand",
+      "description": "New Zealand is ideal for students who want focused universities, safety, work opportunities, and a calm environment for long-term growth.",
+      "overview": "New Zealand offers a safe study environment, research-led universities, and a balanced lifestyle. It suits students looking for focused programs and stable post-study options.",
+      "highlights": [
+        "Student-friendly visa settings",
+        "Safe study environment",
+        "Research-led universities",
+        "Good work-life balance",
+        "Growing demand for skilled graduates"
+      ],
+      "universities": [
+        "University of Auckland",
+        "University of Otago",
+        "Victoria University of Wellington",
+        "University of Canterbury",
+        "Massey University"
+      ],
+      "tuition": "NZD 20,000 - 40,000/year",
+      "requirements": [
+        "IELTS/PTE/TOEFL",
+        "Academic transcripts",
+        "Statement of purpose",
+        "Financial evidence",
+        "Health and character documents"
+      ],
+      "workOptions": [
+        "Part-time work while studying",
+        "Post-study work visa options",
+        "Skilled employment pathways"
+      ],
+      "accent": "from-indigo-50 to-slate-50",
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    }
+  ],
+  "siteContent": {
+    "heroTitle": "Start Your Learning Journey",
+    "heroAccent": "Now",
+    "heroSubtitle": "NextStep Global is a reliable student service provider committed to guiding ambitious learners, strengthening their education portfolio, and unlocking worldwide opportunities.",
+    "primaryCta": "Apply Now",
+    "secondaryCta": "Explore Destinations",
+    "metrics": [
+      {
+        "value": "9394+",
+        "label": "Enrolled Learners"
+      },
+      {
+        "value": "534+",
+        "label": "Universities"
+      },
+      {
+        "value": "643+",
+        "label": "Global Offices"
+      },
+      {
+        "value": "100%",
+        "label": "Free Services"
+      }
+    ],
+    "mentorshipTitle": "Our Services",
+    "mentorshipSubtitle": "We guide students through admissions, scholarship planning, visa preparation, and financial documentation with practical support at every step.",
+    "services": [
+      {
+        "title": "College & University Admission",
+        "text": "College and university admission processes are simplified with expert guidance."
+      },
+      {
+        "title": "Scholarship Assistance",
+        "text": "Scholarship assistance helps students identify financial support for international education."
+      },
+      {
+        "title": "Financial Documentation Guidance",
+        "text": "Financial documentation guidance helps students prepare proper records for admission and visa processing."
+      },
+      {
+        "title": "Career Counselling",
+        "text": "Education counsellors learn about student goals and recommend practical academic pathways."
+      },
+      {
+        "title": "Visa Services",
+        "text": "Visa services support students with processing, documentation, and interview readiness."
+      },
+      {
+        "title": "Test Preparation Classes",
+        "text": "Test preparation classes help improve exam confidence and readiness."
+      }
+    ],
+    "aboutTitle": "Welcome to NextStep Global",
+    "aboutText": "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities, offering expertise across law, medicine, business, and other academic fields.",
+    "aboutHighlights": [
+      "College & University Admission",
+      "Scholarship Assistance",
+      "Career Counselling",
+      "Professional Consulate for Visa Processing",
+      "Financial Documentation Guidance"
+    ],
+    "contactTitle": "Have Any Questions About Studying Abroad?",
+    "contactText": "Contact us today for admission guidance, destination selection, and visa preparation support.",
+    "contactEmail": "hello@nextstepglobal.net",
+    "contactPhone": "+8801758 580909",
+    "footerTagline": "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities."
+  },
+  "appointments": [],
+  "ownerSettings": {
+    "companyName": "NextStep Global",
+    "ownerName": "NextStep Owner",
+    "supportEmail": "hello@nextstepglobal.net",
+    "supportPhone": "+8801758 580909",
+    "timezone": "Asia/Dhaka",
+    "defaultCounselorMessage": "Thank you for your inquiry. A counselor will reach out soon.",
+    "brandTagline": "Study abroad planning with structure, care, and momentum."
+  },
+  "auditLogs": [],
+  "adminInvites": [],
+  "notificationTemplates": [
+    {
+      "id": "welcome-email",
+      "name": "Welcome Follow Up",
+      "channel": "email",
+      "subject": "Your NextStep consultation request",
+      "message": "Hi {{name}},\n\nThank you for reaching out. Our team will review your goals and contact you shortly.\n\nRegards,\nNextStep",
+      "updatedAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": "docs-reminder",
+      "name": "Document Reminder",
+      "channel": "both",
+      "subject": "Document checklist reminder",
+      "message": "Hi {{name}},\n\nThis is a reminder to upload your pending documents so we can continue your application process.",
+      "updatedAt": "2026-05-12T00:00:00.000Z"
+    }
+  ],
+  "studentDocuments": [],
+  "consultants": [
+    {
+      "id": 1,
+      "name": "Priya Sharma",
+      "role": "Senior Education Consultant",
+      "specialty": "Canada and scholarship planning",
+      "experience": "12 Years",
+      "imageUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop",
+      "bio": "Priya helps students match their academic profile with Canadian universities, scholarship options, and post-study pathways.",
+      "countries": [
+        "Canada",
+        "United Kingdom"
+      ],
+      "languages": [
+        "English",
+        "Hindi",
+        "Telugu"
+      ],
+      "featured": true,
+      "sortOrder": 1,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Rahul Mehta",
+      "role": "Visa Strategy Mentor",
+      "specialty": "Australia and New Zealand admissions",
+      "experience": "8 Years",
+      "imageUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1200&auto=format&fit=crop",
+      "bio": "Rahul focuses on practical course shortlisting, documentation readiness, and student visa interview preparation.",
+      "countries": [
+        "Australia",
+        "New Zealand"
+      ],
+      "languages": [
+        "English",
+        "Hindi"
+      ],
+      "featured": true,
+      "sortOrder": 2,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Dr. Ananya Krishnan",
+      "role": "Research Pathway Advisor",
+      "specialty": "Europe, Germany, and research programs",
+      "experience": "10 Years",
+      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1200&auto=format&fit=crop",
+      "bio": "Ananya guides postgraduate and research applicants through university fit, statements of purpose, and supervisor outreach.",
+      "countries": [
+        "Germany",
+        "Europe",
+        "United States"
+      ],
+      "languages": [
+        "English",
+        "Hindi",
+        "Malayalam"
+      ],
+      "featured": true,
+      "sortOrder": 3,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    }
+  ]
+}
