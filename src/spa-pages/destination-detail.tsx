@@ -43,7 +43,7 @@ export default function DestinationDetailPage() {
   const otherDestinations = destinationsList.filter((entry) => entry.slug !== destination.slug).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#0f1b2f]">
+    <div className="modern-page-shell">
       <PublicHeader active="destinations" />
 
       <section className={`border-b border-slate-200 bg-gradient-to-br ${destination.accent}`}>

@@ -12,7 +12,7 @@ export default function ServicesPage() {
   const services = Array.isArray(content?.services) ? content.services : [];
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#0f1b2f]">
+    <div className="modern-page-shell">
       <PublicHeader active="services" />
 
       <section className="border-b border-slate-200 bg-[linear-gradient(180deg,#fffdf7_0%,#eef4ff_100%)] py-22">

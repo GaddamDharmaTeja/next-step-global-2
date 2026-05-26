@@ -243,7 +243,7 @@ export default function AdminDestinationsPage() {
           </Dialog>
         </div>
 
-        <div className="rounded-md border bg-white">
+        <div className="modern-admin-panel overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

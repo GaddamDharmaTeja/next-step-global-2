@@ -16,7 +16,7 @@ export default function AdminAuditLogsPage() {
           <h2 className="text-2xl font-bold tracking-tight">Audit Logs</h2>
           <p className="text-muted-foreground">A running history of user, content, invite, lead, and document changes.</p>
         </div>
-        <div className="rounded-md border bg-white">
+        <div className="modern-admin-panel overflow-hidden">
           <div className="divide-y">
             {data.length === 0 && <div className="p-6 text-sm text-muted-foreground">No audit events yet.</div>}
             {data.map((entry) => (

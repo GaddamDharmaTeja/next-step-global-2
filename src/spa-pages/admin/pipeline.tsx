@@ -102,7 +102,7 @@ export default function AdminPipelinePage() {
           {stages.map((stage) => {
             const stageInquiries = inquiries.filter((inquiry) => stageFor(inquiry) === stage.value);
             return (
-              <div key={stage.value} className="min-w-[280px] rounded-md border bg-white">
+              <div key={stage.value} className="modern-admin-panel min-w-[280px] overflow-hidden">
                 <div className="border-b p-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">{stage.label}</h3>
@@ -115,7 +115,7 @@ export default function AdminPipelinePage() {
                     <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">No leads</div>
                   )}
                   {stageInquiries.map((inquiry) => (
-                    <div key={inquiry.id} className="rounded-md border bg-slate-50 p-4">
+                    <div key={inquiry.id} className="rounded-lg border border-slate-200/80 bg-slate-50/90 p-4 shadow-sm">
                       <div className="font-semibold">{inquiry.name}</div>
                       <div className="mt-1 text-sm text-slate-700">{inquiry.subject}</div>
                       <div className="mt-3 space-y-1 text-xs text-muted-foreground">

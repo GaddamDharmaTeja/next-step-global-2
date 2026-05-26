@@ -40,7 +40,7 @@ export default function AdminOwnerSettingsPage() {
           <p className="text-muted-foreground">Manage business identity, support contacts, and default operating copy.</p>
         </div>
 
-        <div className="grid gap-4 rounded-md border bg-white p-6 md:grid-cols-2">
+        <div className="modern-admin-panel grid gap-4 p-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Company Name</Label>
             <Input value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} />

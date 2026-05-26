@@ -122,7 +122,7 @@ export default function AdminContentPage() {
           <p className="text-muted-foreground">Edit the public website sections using nextstepglobal.net as the reference.</p>
         </div>
 
-        <div className="rounded-md border bg-white p-6">
+        <div className="modern-admin-panel p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid gap-4 md:grid-cols-2">

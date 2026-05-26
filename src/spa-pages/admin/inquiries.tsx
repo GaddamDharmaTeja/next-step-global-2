@@ -3,18 +3,102 @@ import { useListInquiries, useUpdateInquiry, useDeleteInquiry, getListInquiriesQ
 import { useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2 } from "lucide-react";
+import { CalendarClock, Mail, MessageCircle, Search, Sparkles, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 type InquiryStatus = "pending" | "contacted" | "resolved";
+type StatusFilter = "all" | InquiryStatus;
+
+type AdminInquiry = {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  whatsapp?: string | null;
+  subject: string;
+  message: string;
+  status: InquiryStatus;
+  leadStage?: string | null;
+  assignedToName?: string | null;
+  followUpAt?: string | null;
+  createdAt: string;
+};
+
+const statusStyles: Record<InquiryStatus, string> = {
+  pending: "border-amber-200 bg-amber-50 text-amber-800",
+  contacted: "border-blue-200 bg-blue-50 text-blue-800",
+  resolved: "border-emerald-200 bg-emerald-50 text-emerald-800",
+};
+
+function daysSince(date: string) {
+  const created = new Date(date).getTime();
+  if (Number.isNaN(created)) return 0;
+  return Math.max(0, Math.floor((Date.now() - created) / 86400000));
+}
+
+function getPriority(inquiry: AdminInquiry) {
+  let score = inquiry.status === "pending" ? 42 : inquiry.status === "contacted" ? 20 : 6;
+  const age = daysSince(inquiry.createdAt);
+  score += Math.min(age * 8, 38);
+  if (inquiry.whatsapp || inquiry.phone) score += 10;
+  if (/(urgent|visa|deadline|scholarship|intake|apply|admission)/i.test(`${inquiry.subject} ${inquiry.message}`)) score += 16;
+  if (inquiry.followUpAt && new Date(inquiry.followUpAt).getTime() < Date.now()) score += 18;
+  return Math.min(score, 100);
+}
+
+function priorityLabel(score: number) {
+  if (score >= 70) return "High intent";
+  if (score >= 40) return "Warm";
+  return "Routine";
+}
 
 export default function AdminInquiriesPage() {
-  const { data: inquiries, isLoading } = useListInquiries();
+  const { data: rawInquiries, isLoading } = useListInquiries();
+  const inquiries = (rawInquiries ?? []) as AdminInquiry[];
   const updateInquiry = useUpdateInquiry();
   const deleteInquiry = useDeleteInquiry();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const enrichedInquiries = useMemo(
+    () =>
+      inquiries
+        .map((inquiry) => ({ ...inquiry, priority: getPriority(inquiry), ageDays: daysSince(inquiry.createdAt) }))
+        .sort((a, b) => b.priority - a.priority || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [inquiries],
+  );
+
+  const filteredInquiries = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return enrichedInquiries.filter((inquiry) => {
+      const matchesStatus = statusFilter === "all" || inquiry.status === statusFilter;
+      const matchesQuery =
+        !query ||
+        [inquiry.name, inquiry.email, inquiry.subject, inquiry.message, inquiry.phone, inquiry.whatsapp]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query));
+      return matchesStatus && matchesQuery;
+    });
+  }, [enrichedInquiries, searchTerm, statusFilter]);
+
+  const metrics = useMemo(() => {
+    const pending = inquiries.filter((inquiry) => inquiry.status === "pending").length;
+    const highIntent = enrichedInquiries.filter((inquiry) => inquiry.priority >= 70).length;
+    const overdue = inquiries.filter((inquiry) => inquiry.followUpAt && new Date(inquiry.followUpAt).getTime() < Date.now()).length;
+    const contacted = inquiries.filter((inquiry) => inquiry.status === "contacted").length;
+    return [
+      { label: "Open leads", value: pending, tone: "text-amber-700" },
+      { label: "High intent", value: highIntent, tone: "text-rose-700" },
+      { label: "Follow-ups due", value: overdue, tone: "text-blue-700" },
+      { label: "Contacted", value: contacted, tone: "text-emerald-700" },
+    ];
+  }, [enrichedInquiries, inquiries]);
 
   const handleStatusChange = (id: number, status: string) => {
     updateInquiry.mutate({ inquiryId: id, data: { status: status as InquiryStatus } }, {
@@ -46,55 +130,136 @@ export default function AdminInquiriesPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Manage Inquiries</h2>
-          <p className="text-muted-foreground">Review and respond to student inquiries.</p>
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">
+              <Sparkles className="h-3.5 w-3.5" />
+              Smart Lead Inbox
+            </div>
+            <h2 className="mt-3 text-2xl font-bold tracking-tight">Manage Inquiries</h2>
+            <p className="text-muted-foreground">Prioritize, search, and contact student inquiries faster.</p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:w-[520px]">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search name, email, subject..."
+                className="h-11 bg-white pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+              <SelectTrigger className="h-11 bg-white">
+                <SelectValue placeholder="Filter status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="contacted">Contacted</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="bg-white border rounded-md">
+        <div className="grid gap-3 md:grid-cols-4">
+          {metrics.map((metric) => (
+            <div key={metric.label} className="modern-admin-panel p-4">
+              <div className={`text-3xl font-bold ${metric.tone}`}>{metric.value}</div>
+              <div className="mt-1 text-sm font-medium text-slate-600">{metric.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="modern-admin-panel overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Name</TableHead>
+              <TableRow className="bg-slate-50">
+                <TableHead>Lead</TableHead>
                 <TableHead>Subject</TableHead>
+                <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Contact</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {inquiries?.length === 0 && (
+              {filteredInquiries.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No inquiries found.
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                    No inquiries match the current view.
                   </TableCell>
                 </TableRow>
               )}
-              {inquiries?.map((inq) => (
+              {filteredInquiries.map((inq) => (
                 <TableRow key={inq.id}>
-                  <TableCell>{new Date(inq.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
+                  <TableCell className="min-w-[220px]">
                     <div className="font-medium">{inq.name}</div>
                     <div className="text-xs text-muted-foreground">{inq.email}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>{new Date(inq.createdAt).toLocaleDateString()}</span>
+                      {inq.ageDays > 0 && <span>{inq.ageDays}d old</span>}
+                      {inq.assignedToName && <span>Owner: {inq.assignedToName}</span>}
+                    </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-w-[340px]">
                     <div className="font-medium">{inq.subject}</div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[200px]">{inq.message}</div>
+                    <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">{inq.message}</div>
+                    {inq.followUpAt && (
+                      <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                        <CalendarClock className="h-3 w-3" />
+                        {new Date(inq.followUpAt).toLocaleString()}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Select value={inq.status} onValueChange={(val) => handleStatusChange(inq.id, val)}>
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex min-w-[150px] items-center gap-3">
+                      <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full rounded-full bg-[#d9a31a]" style={{ width: `${inq.priority}%` }} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold">{inq.priority}</div>
+                        <div className="text-xs text-muted-foreground">{priorityLabel(inq.priority)}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-2">
+                      <Badge variant="outline" className={statusStyles[inq.status]}>
+                        {inq.status}
+                      </Badge>
+                      <Select value={inq.status} onValueChange={(val) => handleStatusChange(inq.id, val)}>
+                        <SelectTrigger className="w-[130px] bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="contacted">Contacted</SelectItem>
+                          <SelectItem value="resolved">Resolved</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="icon" asChild title="Email lead">
+                        <a href={`mailto:${inq.email}?subject=${encodeURIComponent(`NextStep Global: ${inq.subject}`)}`}>
+                          <Mail className="h-4 w-4" />
+                        </a>
+                      </Button>
+                      {(inq.whatsapp || inq.phone) && (
+                        <Button variant="outline" size="icon" asChild title="Open WhatsApp">
+                          <a href={`https://wa.me/${String(inq.whatsapp || inq.phone).replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
+                            <MessageCircle className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(inq.id)} className="text-destructive">
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(inq.id)} className="text-destructive" title="Delete inquiry">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>

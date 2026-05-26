@@ -110,7 +110,7 @@ export default function HomePage() {
     : ["Course shortlisting", "Scholarship strategy", "Visa documentation", "Pre-departure briefing"];
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#0f1b2f]">
+    <div className="modern-page-shell">
       <PublicHeader active="home" variant="overlay" />
 
       <section

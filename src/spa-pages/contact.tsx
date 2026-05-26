@@ -75,7 +75,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#0f1b2f]">
+    <div className="modern-page-shell">
       <PublicHeader active="contact" />
 
       <section className="border-b border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#eef4ff_100%)] py-20">

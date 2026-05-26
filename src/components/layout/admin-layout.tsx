@@ -81,8 +81,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       : "bg-[#173f86]/30 text-[#d8e7ff] ring-1 ring-[#9ab8ef]/20";
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(14,47,109,0.10),_transparent_20%),radial-gradient(circle_at_bottom_right,_rgba(217,163,26,0.14),_transparent_18%),linear-gradient(180deg,_#fdfbf5_0%,_#f5f8ff_42%,_#f9fafc_100%)] text-slate-950 lg:flex">
-      <aside className="flex w-full shrink-0 flex-col overflow-hidden border-b border-white/50 bg-[linear-gradient(180deg,#09172f_0%,#0e2f6d_55%,#17458d_100%)] text-primary-foreground shadow-[0_25px_80px_rgba(15,23,42,0.18)] lg:min-h-screen lg:w-80 lg:border-b-0 lg:border-r lg:border-r-white/10">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(14,47,109,0.12),_transparent_24rem),radial-gradient(circle_at_bottom_right,_rgba(217,163,26,0.16),_transparent_26rem),linear-gradient(180deg,_#fbfcff_0%,_#f4f7fb_48%,_#ffffff_100%)] text-slate-950 lg:flex">
+      <aside className="flex w-full shrink-0 flex-col overflow-hidden border-b border-white/50 bg-[linear-gradient(180deg,#071225_0%,#0d2a61_48%,#17458d_100%)] text-primary-foreground shadow-[0_28px_90px_rgba(15,23,42,0.22)] lg:min-h-screen lg:w-80 lg:border-b-0 lg:border-r lg:border-r-white/10">
         <div className="border-b border-white/10 px-6 py-6">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -101,7 +101,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="mt-6 rounded-[1.6rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+          <div className="mt-6 rounded-lg border border-white/12 bg-white/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-sm text-slate-300">Signed in as</div>
@@ -123,9 +123,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+                className="group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 hover:text-white"
               >
-                <div className="rounded-xl bg-white/10 p-2 text-slate-200 transition group-hover:bg-white/15 group-hover:text-white">
+                <div className="rounded-md bg-white/10 p-2 text-slate-200 transition group-hover:bg-white/15 group-hover:text-white">
                   <Icon className="h-4 w-4" />
                 </div>
                 <span>{item.label}</span>
@@ -138,7 +138,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <div className="grid gap-3">
             <Link
               href="/"
-              className="inline-flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/15 hover:text-white"
+              className="inline-flex items-center justify-between rounded-lg border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/15 hover:text-white"
             >
               <span className="inline-flex items-center gap-3">
                 <Home className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               variant="outline"
               size="sm"
               onClick={handleSignOut}
-              className="h-11 rounded-2xl border-white/15 bg-transparent text-sm font-semibold text-white hover:bg-white/10 hover:text-white"
+              className="h-11 rounded-lg border-white/15 bg-transparent text-sm font-semibold text-white hover:bg-white/10 hover:text-white"
             >
               Sign out
             </Button>
@@ -159,14 +159,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 border-b border-slate-200/70 bg-white/75 backdrop-blur-xl">
+        <header className="sticky top-0 z-10 border-b border-white/70 bg-white/82 shadow-[0_14px_42px_rgba(15,23,42,0.05)] backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-8">
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a77400]">Operations</div>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">Admin Portal</h1>
             </div>
             <div className="hidden items-center gap-3 md:flex">
-              <div className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
+              <div className="rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm">
                 {profile.email}
               </div>
             </div>

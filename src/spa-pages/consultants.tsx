@@ -16,7 +16,7 @@ export default function ConsultantsPage() {
   const visibleConsultants = consultantsList.filter((consultant) => consultant.featured);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#0f1b2f]">
+    <div className="modern-page-shell">
       <PublicHeader active="consultants" />
 
       <section className="relative overflow-hidden bg-[#101b31] text-white">

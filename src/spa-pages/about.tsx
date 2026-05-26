@@ -11,7 +11,7 @@ export default function AboutPage() {
     : ["Course shortlisting", "Scholarship strategy", "Visa documentation", "Pre-departure briefing"];
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-[#0f1b2f]">
+    <div className="modern-page-shell">
       <PublicHeader active="about" />
 
       <section className="border-b border-slate-200 bg-white py-22">

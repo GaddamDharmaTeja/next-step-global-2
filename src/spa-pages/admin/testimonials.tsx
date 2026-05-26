@@ -146,7 +146,7 @@ export default function AdminTestimonialsPage() {
           </Dialog>
         </div>
 
-        <div className="bg-white border rounded-md">
+        <div className="modern-admin-panel overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

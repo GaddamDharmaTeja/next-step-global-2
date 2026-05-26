@@ -13,10 +13,14 @@ type PublicHeaderProps = {
 
 function navClass(isActive: boolean, variant: "default" | "overlay") {
   if (variant === "overlay") {
-    return isActive ? "text-white" : "text-white/78 transition-colors hover:text-white";
+    return isActive
+      ? "rounded-full bg-white/14 px-4 py-2 text-white"
+      : "rounded-full px-4 py-2 text-white/78 transition-colors hover:bg-white/10 hover:text-white";
   }
 
-  return isActive ? "text-[#0e2f6d]" : "transition-colors hover:text-[#0e2f6d]";
+  return isActive
+    ? "rounded-full bg-[#0e2f6d]/10 px-4 py-2 text-[#0e2f6d]"
+    : "rounded-full px-4 py-2 transition-colors hover:bg-slate-100 hover:text-[#0e2f6d]";
 }
 
 const navItems = [
@@ -37,7 +41,7 @@ export function PublicHeader({ active, variant = "default" }: PublicHeaderProps)
       className={
         isOverlay
           ? "absolute inset-x-0 top-0 z-50 border-b border-white/10 bg-transparent"
-          : "sticky top-0 z-50 border-b border-[#d9dee8] bg-white/98 backdrop-blur"
+          : "sticky top-0 z-50 border-b border-white/70 bg-white/88 shadow-[0_14px_45px_rgba(15,23,42,0.06)] backdrop-blur-xl"
       }
     >
       <div className="mx-auto flex min-h-[92px] max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-5 lg:px-8">
@@ -46,7 +50,7 @@ export function PublicHeader({ active, variant = "default" }: PublicHeaderProps)
             frameClassName={
               isOverlay
                 ? "flex h-[64px] items-center rounded-2xl border border-white/12 bg-white/92 px-3 shadow-[0_14px_34px_rgba(8,17,32,0.24)] backdrop-blur sm:px-4"
-                : "flex h-[64px] items-center rounded-2xl bg-white px-3 sm:px-4"
+                : "flex h-[64px] items-center rounded-2xl border border-slate-200/70 bg-white px-3 shadow-[0_12px_34px_rgba(15,23,42,0.07)] sm:px-4"
             }
             imageClassName="h-11 w-auto max-w-[180px] object-contain sm:h-14 sm:max-w-[280px]"
           />
@@ -72,7 +76,7 @@ export function PublicHeader({ active, variant = "default" }: PublicHeaderProps)
             Portal
           </Link>
           <Link href="/contact">
-            <Button className="h-12 rounded-md border border-[#c79414] bg-[#d9a31a] px-5 text-base font-semibold text-[#081120] shadow-[0_16px_30px_rgba(217,163,26,0.2)] hover:bg-[#c79414]">
+            <Button className="h-12 rounded-md border border-[#c79414] bg-[#d9a31a] px-5 text-base font-semibold text-[#081120] shadow-[0_16px_30px_rgba(217,163,26,0.22)] transition hover:-translate-y-0.5 hover:bg-[#c79414]">
               Free Assessment
             </Button>
           </Link>

@@ -144,7 +144,7 @@ export default function AdminProgramsPage() {
           </Dialog>
         </div>
 
-        <div className="bg-white border rounded-md">
+        <div className="modern-admin-panel overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

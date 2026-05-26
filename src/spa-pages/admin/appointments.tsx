@@ -53,7 +53,7 @@ export default function AdminAppointmentsPage() {
           <p className="text-muted-foreground">Review consultation requests and update scheduling status.</p>
         </div>
 
-        <div className="rounded-md border bg-white">
+        <div className="modern-admin-panel overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

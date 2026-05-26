@@ -33,9 +33,9 @@ export default function AdminDocumentsPage() {
           <p className="text-muted-foreground">Review uploaded files and update their processing status.</p>
         </div>
         <div className="space-y-4">
-          {data.length === 0 && <div className="rounded-md border bg-white p-6 text-sm text-muted-foreground">No documents uploaded yet.</div>}
+          {data.length === 0 && <div className="modern-admin-panel p-6 text-sm text-muted-foreground">No documents uploaded yet.</div>}
           {data.map((doc) => (
-            <div key={doc.id} className="grid gap-4 rounded-md border bg-white p-4 md:grid-cols-[1.8fr_180px_1fr_auto]">
+            <div key={doc.id} className="modern-admin-panel grid gap-4 p-4 md:grid-cols-[1.8fr_180px_1fr_auto]">
               <div>
                 <div className="font-medium">{doc.fileName}</div>
                 <div className="text-xs text-muted-foreground">{doc.userName || doc.userEmail}</div>
