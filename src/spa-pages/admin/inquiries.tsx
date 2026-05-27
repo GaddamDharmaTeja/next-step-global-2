@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarClock, Mail, MessageCircle, Search, Sparkles, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { listNotificationTemplates, type NotificationTemplateRecord } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
 type InquiryStatus = "pending" | "contacted" | "resolved";
 type StatusFilter = "all" | InquiryStatus;
@@ -56,35 +58,62 @@ function priorityLabel(score: number) {
   return "Routine";
 }
 
-function buildReplyTemplate(inquiry: AdminInquiry) {
-  return [
-    `Hi ${inquiry.name || "there"},`,
-    "",
-    "Thank you for contacting NextStep Global.",
-    `We received your inquiry about "${inquiry.subject}".`,
-    "",
-    "Our counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.",
-    "",
-    "Please share your preferred study destination, current qualification, and intake timeline so we can assist you better.",
-    "",
-    "Regards,",
-    "NextStep Global",
-  ].join("\n");
+const fallbackInquiryEmailTemplate: NotificationTemplateRecord = {
+  id: "fallback-inquiry-email",
+  name: "Inquiry Email Reply",
+  channel: "email",
+  purpose: "inquiry_email",
+  subject: "NextStep Global - {{subject}}",
+  message:
+    "Hi {{name}},\n\nThank you for contacting NextStep Global.\nWe received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
+  updatedAt: "",
+};
+
+const fallbackInquiryWhatsAppTemplate: NotificationTemplateRecord = {
+  ...fallbackInquiryEmailTemplate,
+  id: "fallback-inquiry-whatsapp",
+  name: "Inquiry WhatsApp Reply",
+  channel: "whatsapp",
+  purpose: "inquiry_whatsapp",
+  subject: "NextStep Global inquiry reply",
+};
+
+function applyTemplate(template: string, inquiry: AdminInquiry) {
+  const values: Record<string, string> = {
+    name: inquiry.name || "there",
+    email: inquiry.email || "",
+    phone: inquiry.phone || "",
+    whatsapp: inquiry.whatsapp || "",
+    subject: inquiry.subject || "your study abroad inquiry",
+    message: inquiry.message || "",
+    status: inquiry.status || "",
+  };
+
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_match, key: string) => values[key] ?? "");
 }
 
-function buildMailToLink(inquiry: AdminInquiry) {
-  const subject = `NextStep Global - ${inquiry.subject || "Your study abroad inquiry"}`;
-  return `mailto:${inquiry.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildReplyTemplate(inquiry))}`;
+function findTemplate(templates: NotificationTemplateRecord[], purpose: string, fallback: NotificationTemplateRecord) {
+  return templates.find((template) => template.purpose === purpose) || fallback;
 }
 
-function buildWhatsAppLink(inquiry: AdminInquiry) {
+function buildMailToLink(inquiry: AdminInquiry, template: NotificationTemplateRecord) {
+  const subject = applyTemplate(template.subject, inquiry);
+  const body = applyTemplate(template.message, inquiry);
+  return `mailto:${inquiry.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function buildWhatsAppLink(inquiry: AdminInquiry, template: NotificationTemplateRecord) {
   const rawPhone = String(inquiry.whatsapp || inquiry.phone || "").replace(/\D/g, "");
   if (!rawPhone) return null;
-  return `https://wa.me/${rawPhone}?text=${encodeURIComponent(buildReplyTemplate(inquiry))}`;
+  return `https://wa.me/${rawPhone}?text=${encodeURIComponent(applyTemplate(template.message, inquiry))}`;
 }
 
 export default function AdminInquiriesPage() {
   const { data: rawInquiries, isLoading } = useListInquiries();
+  const { data: templates = [] } = useQuery({
+    queryKey: ["/api/notification-templates"],
+    queryFn: listNotificationTemplates,
+  });
   const inquiries = (rawInquiries ?? []) as AdminInquiry[];
   const updateInquiry = useUpdateInquiry();
   const deleteInquiry = useDeleteInquiry();
@@ -221,7 +250,9 @@ export default function AdminInquiriesPage() {
                 </TableRow>
               )}
               {filteredInquiries.map((inq) => {
-                const whatsAppLink = buildWhatsAppLink(inq);
+                const emailTemplate = findTemplate(templates, "inquiry_email", fallbackInquiryEmailTemplate);
+                const whatsAppTemplate = findTemplate(templates, "inquiry_whatsapp", fallbackInquiryWhatsAppTemplate);
+                const whatsAppLink = buildWhatsAppLink(inq, whatsAppTemplate);
 
                 return (
                 <TableRow key={inq.id}>
@@ -275,7 +306,7 @@ export default function AdminInquiriesPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="icon" asChild title="Email lead">
-                        <a href={buildMailToLink(inq)}>
+                        <a href={buildMailToLink(inq, emailTemplate)}>
                           <Mail className="h-4 w-4" />
                         </a>
                       </Button>

@@ -183,6 +183,7 @@ export interface NotificationTemplateRecord {
   id: string;
   name: string;
   channel: NotificationChannel;
+  purpose?: string | null;
   subject: string;
   message: string;
   updatedAt: string;
@@ -584,6 +585,7 @@ const seedStore: AppStore = {
       id: "welcome-email",
       name: "Welcome Follow Up",
       channel: "email",
+      purpose: "general",
       subject: "Your NextStep consultation request",
       message: "Hi {{name}},\n\nThank you for reaching out. Our team will review your goals and contact you shortly.\n\nRegards,\nNextStep",
       updatedAt: "2026-05-12T00:00:00.000Z",
@@ -592,8 +594,29 @@ const seedStore: AppStore = {
       id: "docs-reminder",
       name: "Document Reminder",
       channel: "both",
+      purpose: "general",
       subject: "Document checklist reminder",
       message: "Hi {{name}},\n\nThis is a reminder to upload your pending documents so we can continue your application process.",
+      updatedAt: "2026-05-12T00:00:00.000Z",
+    },
+    {
+      id: "inquiry-email-reply",
+      name: "Inquiry Email Reply",
+      channel: "email",
+      purpose: "inquiry_email",
+      subject: "NextStep Global - {{subject}}",
+      message:
+        "Hi {{name}},\n\nThank you for contacting NextStep Global.\nWe received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
+      updatedAt: "2026-05-12T00:00:00.000Z",
+    },
+    {
+      id: "inquiry-whatsapp-reply",
+      name: "Inquiry WhatsApp Reply",
+      channel: "whatsapp",
+      purpose: "inquiry_whatsapp",
+      subject: "NextStep Global inquiry reply",
+      message:
+        "Hi {{name}},\n\nThank you for contacting NextStep Global. We received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
       updatedAt: "2026-05-12T00:00:00.000Z",
     },
   ],
@@ -700,6 +723,12 @@ function normalizeStore(store: AppStore): boolean {
   if (!store.notificationTemplates) {
     store.notificationTemplates = cloneStore(seedStore).notificationTemplates;
     changed = true;
+  }
+  for (const seedTemplate of seedStore.notificationTemplates) {
+    if (seedTemplate.purpose && !store.notificationTemplates.some((entry) => entry.purpose === seedTemplate.purpose)) {
+      store.notificationTemplates.push({ ...seedTemplate });
+      changed = true;
+    }
   }
   if (!store.studentDocuments) {
     store.studentDocuments = [];

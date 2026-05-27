@@ -54,6 +54,7 @@ export interface NotificationTemplateRecord {
   id: string;
   name: string;
   channel: "email" | "whatsapp" | "both";
+  purpose?: string | null;
   subject: string;
   message: string;
   updatedAt: string;
