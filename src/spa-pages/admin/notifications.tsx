@@ -10,7 +10,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Edit, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useSendNotification } from "@workspace/api-client-react";
 import { createNotificationTemplate, listNotificationTemplates, updateNotificationTemplate } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -26,8 +25,6 @@ const notificationSchema = z.object({
 
 export default function AdminNotificationsPage() {
   const { toast } = useToast();
-  const sendNotification = useSendNotification();
-  const isSending = sendNotification.isPending;
   const { data: templates = [] } = useQuery({ queryKey: ["/api/notification-templates"], queryFn: listNotificationTemplates });
   const queryClient = useQueryClient();
   const [templateName, setTemplateName] = useState("");
@@ -39,23 +36,28 @@ export default function AdminNotificationsPage() {
   });
 
   const onSubmit = (values: z.infer<typeof notificationSchema>) => {
-    sendNotification.mutate({
-      data: {
-        channel: values.channel,
-        recipientEmail: values.recipientEmail || null,
-        recipientPhone: values.recipientPhone || null,
-        subject: values.subject,
-        message: values.message,
+    const opened: string[] = [];
+
+    if ((values.channel === "email" || values.channel === "both") && values.recipientEmail) {
+      const mailLink = `mailto:${values.recipientEmail}?subject=${encodeURIComponent(values.subject)}&body=${encodeURIComponent(values.message)}`;
+      window.location.href = mailLink;
+      opened.push("email");
+    }
+
+    if ((values.channel === "whatsapp" || values.channel === "both") && values.recipientPhone) {
+      const phone = values.recipientPhone.replace(/\D/g, "");
+      if (phone) {
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(values.message)}`, "_blank", "noopener,noreferrer");
+        opened.push("WhatsApp");
       }
-    }, {
-      onSuccess: (result) => {
-        toast({ title: result.message });
-        form.reset();
-      },
-      onError: () => {
-        toast({ title: "Failed to send notification", variant: "destructive" });
-      }
-    });
+    }
+
+    if (opened.length === 0) {
+      toast({ title: "Add an email or phone number for the selected channel", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: `Opened ${opened.join(" and ")} locally` });
   };
 
   const channel = form.watch("channel");
@@ -181,9 +183,9 @@ export default function AdminNotificationsPage() {
                   </FormItem>
                 )} />
 
-                <Button type="submit" disabled={isSending} className="w-full">
+                <Button type="submit" className="w-full">
                   <Send className="w-4 h-4 mr-2" />
-                  {isSending ? "Sending..." : "Send Notification"}
+                  Send Notification
                 </Button>
                 <div className="grid grid-cols-[1fr_auto] gap-3">
                   <Input value={templateName} onChange={(e) => setTemplateName(e.target.value)} placeholder="Template name" />
