@@ -25,7 +25,9 @@ import AdminDestinationsPage from "./spa-pages/admin/destinations";
 import AdminGalleryPage from "./spa-pages/admin/gallery";
 import AdminTestimonialsPage from "./spa-pages/admin/testimonials";
 import AdminUsersPage from "./spa-pages/admin/users";
+import AdminRolesPage from "./spa-pages/admin/roles";
 import AdminNotificationsPage from "./spa-pages/admin/notifications";
+import AdminTemplatesPage from "./spa-pages/admin/templates";
 import AdminOwnerSettingsPage from "./spa-pages/admin/owner-settings";
 import AdminAuditLogsPage from "./spa-pages/admin/audit-logs";
 import AdminDocumentsPage from "./spa-pages/admin/documents";
@@ -57,7 +59,9 @@ function AppRouter() {
       <Route path="/admin/gallery" component={AdminGalleryPage} />
       <Route path="/admin/testimonials" component={AdminTestimonialsPage} />
       <Route path="/admin/users" component={AdminUsersPage} />
+      <Route path="/admin/roles" component={AdminRolesPage} />
       <Route path="/admin/notifications" component={AdminNotificationsPage} />
+      <Route path="/admin/templates" component={AdminTemplatesPage} />
       <Route path="/admin/settings" component={AdminOwnerSettingsPage} />
       <Route path="/admin/audit-logs" component={AdminAuditLogsPage} />
       <Route path="/admin/documents" component={AdminDocumentsPage} />

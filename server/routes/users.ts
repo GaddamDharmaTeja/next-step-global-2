@@ -192,4 +192,55 @@ router.patch("/:userId/role", requireOwner, async (req, res): Promise<void> => {
   }
 });
 
+router.delete("/:userId", requireOwner, async (req, res): Promise<void> => {
+  const userId = req.params.userId;
+
+  if (req.authUser && req.authUser.id === userId) {
+    res.status(400).json({ error: "Owners cannot delete their own account" });
+    return;
+  }
+
+  try {
+    const removed = await updateStore((store) => {
+      const user = store.users.find((entry) => entry.id === userId || entry.clerkId === userId);
+      if (!user || !user.passwordHash) {
+        return null;
+      }
+
+      const activeOwners = store.users.filter((entry) => entry.passwordHash && entry.role === "owner");
+      if (user.role === "owner" && activeOwners.length <= 1) {
+        return "last-owner" as const;
+      }
+
+      store.users = store.users.filter((entry) => entry.id !== user.id);
+      store.auditLogs.unshift(
+        createAuditLogEntry({
+          actorUserId: req.authUser?.id,
+          actorName: req.authUser?.name || req.authUser?.email || "Owner",
+          actorRole: req.authUser?.role || "owner",
+          action: "user.deleted",
+          entityType: "user",
+          entityId: user.id,
+          summary: `Deleted user ${user.email}`,
+        }),
+      );
+      return user;
+    });
+
+    if (removed === "last-owner") {
+      res.status(400).json({ error: "At least one owner account is required" });
+      return;
+    }
+    if (!removed) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.status(204).send();
+  } catch (err) {
+    req.log.error({ err }, "Failed to delete user");
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
 export default router;

@@ -74,6 +74,11 @@ export interface StudentDocumentRecord {
   uploadedAt: string;
 }
 
+export interface RoleMenuAccessRecord {
+  admin: string[];
+  userPortal: string[];
+}
+
 export interface InquiryRecord {
   id: number;
   name: string;
@@ -405,8 +410,35 @@ export async function createAdminInvite(payload: { email: string; role: "admin" 
   });
 }
 
+export async function deleteUser(userId: string) {
+  const response = await fetch(apiUrl(`/api/users/${userId}`), {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok && response.status !== 204) {
+    const payload = await parseResponse(response);
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "Failed to delete user";
+    throw new Error(message);
+  }
+}
+
 export async function listNotificationTemplates() {
   return request<NotificationTemplateRecord[]>("/api/notification-templates", { method: "GET" });
+}
+
+export async function getRoleMenuAccess() {
+  return request<RoleMenuAccessRecord>("/api/role-menu-access", { method: "GET" });
+}
+
+export async function updateRoleMenuAccess(payload: RoleMenuAccessRecord) {
+  return request<RoleMenuAccessRecord>("/api/role-menu-access", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function createNotificationTemplate(payload: Omit<NotificationTemplateRecord, "id" | "updatedAt">) {

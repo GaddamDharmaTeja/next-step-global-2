@@ -168,16 +168,16 @@ export default function AdminDestinationsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Manage Destinations</h2>
-            <p className="text-muted-foreground">Edit country listing cards and Learn More pages.</p>
+            <h2 className="text-2xl font-bold tracking-tight">Manage Countries</h2>
+            <p className="text-muted-foreground">Edit country listing cards and Learn More pages across the whole application.</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForNew}><Plus className="mr-2 h-4 w-4" /> Add Destination</Button>
+              <Button onClick={resetForNew}><Plus className="mr-2 h-4 w-4" /> Add Country</Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingId ? "Edit Destination" : "Add Destination"}</DialogTitle>
+                <DialogTitle>{editingId ? "Edit Country" : "Add Country"}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -227,15 +227,15 @@ export default function AdminDestinationsPage() {
                   <FormField control={form.control} name="featured" render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div>
-                        <FormLabel className="text-base">Visible on public destination pages</FormLabel>
-                        <div className="text-sm text-muted-foreground">Turn off to hide this destination later.</div>
+                        <FormLabel className="text-base">Visible on public country pages</FormLabel>
+                        <div className="text-sm text-muted-foreground">Turn off to hide this country later.</div>
                       </div>
                       <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                     </FormItem>
                   )} />
 
                   <Button type="submit" className="w-full" disabled={isSaving}>
-                    {isSaving ? "Saving..." : "Save Destination"}
+                    {isSaving ? "Saving..." : "Save Country"}
                   </Button>
                 </form>
               </Form>
@@ -247,7 +247,7 @@ export default function AdminDestinationsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Destination</TableHead>
+                <TableHead>Country</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Tuition</TableHead>
                 <TableHead>Visible</TableHead>
@@ -256,7 +256,7 @@ export default function AdminDestinationsPage() {
             </TableHeader>
             <TableBody>
               {destinations.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="py-8 text-center">No destinations found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="py-8 text-center">No countries found.</TableCell></TableRow>
               )}
               {destinations.map((destination) => (
                 <TableRow key={destination.id}>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getGetMyProfileQueryKey } from "@workspace/api-client-react";
-import { listMyInquiries, signOut } from "@/lib/api";
+import { getRoleMenuAccess, listMyInquiries, signOut } from "@/lib/api";
 import { listMyStudentDocuments, uploadStudentDocument } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -50,6 +50,11 @@ export default function UserPortalPage() {
     queryFn: listMyStudentDocuments,
     enabled: Boolean(profile),
   });
+  const { data: contentAccess } = useQuery({
+    queryKey: ["/api/role-menu-access"],
+    queryFn: getRoleMenuAccess,
+    enabled: Boolean(profile),
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -71,6 +76,8 @@ export default function UserPortalPage() {
   const documentList = Array.isArray(documents) ? documents : [];
   const firstName = profile.name?.trim().split(/\s+/)[0] || "Student";
   const pendingCount = myInquiries.filter((entry) => entry.status === "pending").length;
+  const visibleSections = contentAccess?.userPortal || ["hero", "profile", "inquiries", "programs", "documents"];
+  const canSee = (section: string) => visibleSections.includes(section);
 
   const handleSignOut = async () => {
     try {
@@ -126,6 +133,7 @@ export default function UserPortalPage() {
       </header>
 
       <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+        {canSee("hero") && (
         <section className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(135deg,rgba(8,17,32,0.97)_0%,rgba(14,47,109,0.94)_48%,rgba(24,69,141,0.9)_100%)] px-6 py-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.18)] sm:px-8 lg:px-10">
           <div className="absolute -right-10 top-0 h-40 w-40 rounded-full bg-[#e0b43b]/20 blur-3xl" />
           <div className="absolute bottom-0 left-1/3 h-32 w-32 rounded-full bg-[#9bbcf1]/15 blur-3xl" />
@@ -180,8 +188,10 @@ export default function UserPortalPage() {
             </div>
           </div>
         </section>
+        )}
 
         <section className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+          {canSee("profile") && (
           <Card className="overflow-hidden rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
             <div className="border-b border-slate-200/80 bg-[linear-gradient(135deg,rgba(14,165,233,0.08),rgba(245,158,11,0.08))] p-6">
               <div className="flex items-center justify-between">
@@ -228,8 +238,10 @@ export default function UserPortalPage() {
               </div>
             </CardContent>
           </Card>
+          )}
 
           <div className="space-y-6">
+            {canSee("inquiries") && (
             <Card
               id="inquiries"
               className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur"
@@ -291,7 +303,9 @@ export default function UserPortalPage() {
                 )}
               </CardContent>
             </Card>
+            )}
 
+            {canSee("programs") && (
             <Card
               id="programs"
               className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur"
@@ -355,7 +369,9 @@ export default function UserPortalPage() {
                 </div>
               </CardContent>
             </Card>
+            )}
 
+            {canSee("documents") && (
             <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="flex items-center justify-between border-b border-slate-200/80 p-6">
                 <div>
@@ -381,6 +397,7 @@ export default function UserPortalPage() {
                 ))}
               </CardContent>
             </Card>
+            )}
           </div>
         </section>
       </main>

@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Edit, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createNotificationTemplate, listNotificationTemplates, updateNotificationTemplate } from "@/lib/api";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { listNotificationTemplates } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
 const notificationSchema = z.object({
   channel: z.enum(["email", "whatsapp", "both"]),
@@ -23,12 +22,30 @@ const notificationSchema = z.object({
   message: z.string().min(1, "Message is required"),
 });
 
+function applyNotificationVariables(
+  value: string,
+  values: z.infer<typeof notificationSchema>,
+  templateName: string,
+) {
+  const recipientEmail = values.recipientEmail || "";
+  const recipientPhone = values.recipientPhone || "";
+  const nameFromEmail = recipientEmail ? recipientEmail.split("@")[0] : "";
+  const variables: Record<string, string> = {
+    name: templateName || nameFromEmail || recipientPhone || "there",
+    email: recipientEmail,
+    phone: recipientPhone,
+    whatsapp: recipientPhone,
+    subject: values.subject || "",
+    message: values.message || "",
+    status: "",
+  };
+
+  return value.replace(/\{\{\s*(\w+)\s*\}\}/g, (_match, key: string) => variables[key] ?? "");
+}
+
 export default function AdminNotificationsPage() {
   const { toast } = useToast();
   const { data: templates = [] } = useQuery({ queryKey: ["/api/notification-templates"], queryFn: listNotificationTemplates });
-  const queryClient = useQueryClient();
-  const [templateName, setTemplateName] = useState("");
-  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof notificationSchema>>({
     resolver: zodResolver(notificationSchema),
@@ -37,19 +54,25 @@ export default function AdminNotificationsPage() {
 
   const onSubmit = (values: z.infer<typeof notificationSchema>) => {
     const opened: string[] = [];
+    const resolvedSubject = applyNotificationVariables(values.subject, values, "");
+    const resolvedMessage = applyNotificationVariables(values.message, values, "");
+    const recipientEmail = values.recipientEmail || "";
+    const recipientPhone = values.recipientPhone || "";
+    const shouldOpenEmail = (values.channel === "email" || values.channel === "both") && recipientEmail;
+    const shouldOpenWhatsApp = (values.channel === "whatsapp" || values.channel === "both") && recipientPhone;
 
-    if ((values.channel === "email" || values.channel === "both") && values.recipientEmail) {
-      const mailLink = `mailto:${values.recipientEmail}?subject=${encodeURIComponent(values.subject)}&body=${encodeURIComponent(values.message)}`;
-      window.location.href = mailLink;
-      opened.push("email");
-    }
-
-    if ((values.channel === "whatsapp" || values.channel === "both") && values.recipientPhone) {
-      const phone = values.recipientPhone.replace(/\D/g, "");
+    if (shouldOpenWhatsApp) {
+      const phone = recipientPhone.replace(/\D/g, "");
       if (phone) {
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(values.message)}`, "_blank", "noopener,noreferrer");
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(resolvedMessage)}`, "_blank", "noopener,noreferrer");
         opened.push("WhatsApp");
       }
+    }
+
+    if (shouldOpenEmail) {
+      const mailLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(resolvedSubject)}&body=${encodeURIComponent(resolvedMessage)}`;
+      window.open(mailLink, "_self");
+      opened.push("email");
     }
 
     if (opened.length === 0) {
@@ -65,36 +88,10 @@ export default function AdminNotificationsPage() {
   const loadTemplate = (templateId: string) => {
     const template = templates.find((entry) => entry.id === templateId);
     if (!template) return;
-    setEditingTemplateId(template.id);
-    setTemplateName(template.name);
     form.setValue("channel", template.channel);
     form.setValue("purpose", template.purpose || "general");
     form.setValue("subject", template.subject);
     form.setValue("message", template.message);
-  };
-
-  const saveCurrentAsTemplate = async () => {
-    const values = form.getValues();
-    try {
-      const payload = {
-        name: templateName || values.subject,
-        channel: values.channel,
-        purpose: values.purpose,
-        subject: values.subject,
-        message: values.message,
-      };
-      if (editingTemplateId) {
-        await updateNotificationTemplate(editingTemplateId, payload);
-      } else {
-        await createNotificationTemplate(payload);
-      }
-      setTemplateName("");
-      setEditingTemplateId(null);
-      await queryClient.invalidateQueries({ queryKey: ["/api/notification-templates"] });
-      toast({ title: editingTemplateId ? "Template updated" : "Template saved" });
-    } catch (error) {
-      toast({ title: error instanceof Error ? error.message : "Failed to save template", variant: "destructive" });
-    }
   };
 
   return (
@@ -102,7 +99,7 @@ export default function AdminNotificationsPage() {
       <div className="space-y-6 max-w-2xl mx-auto">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Send Notifications</h2>
-          <p className="text-muted-foreground">Create database-backed email and WhatsApp templates, then send or use them from inquiries.</p>
+          <p className="text-muted-foreground">Load a saved template, add recipient details, and open local email or WhatsApp.</p>
         </div>
 
         <Card>
@@ -140,21 +137,6 @@ export default function AdminNotificationsPage() {
                   </FormItem>
                 )} />
 
-                <FormField control={form.control} name="purpose" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Template Usage</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="general">General</SelectItem>
-                        <SelectItem value="inquiry_email">Inquiry Email Button</SelectItem>
-                        <SelectItem value="inquiry_whatsapp">Inquiry WhatsApp Button</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-
                 <div className="grid grid-cols-2 gap-4">
                   {(channel === "email" || channel === "both") && (
                     <FormField control={form.control} name="recipientEmail" render={({ field }) => (
@@ -187,13 +169,6 @@ export default function AdminNotificationsPage() {
                   <Send className="w-4 h-4 mr-2" />
                   Send Notification
                 </Button>
-                <div className="grid grid-cols-[1fr_auto] gap-3">
-                  <Input value={templateName} onChange={(e) => setTemplateName(e.target.value)} placeholder="Template name" />
-                  <Button type="button" variant="outline" onClick={saveCurrentAsTemplate}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    {editingTemplateId ? "Update Template" : "Save Template"}
-                  </Button>
-                </div>
               </form>
             </Form>
           </CardContent>

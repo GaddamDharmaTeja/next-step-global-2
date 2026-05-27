@@ -12,23 +12,30 @@ import {
   Map,
   MessageCircle,
   MessageSquare,
+  NotebookText,
+  UserCog,
   ShieldCheck,
   Users,
 } from "lucide-react";
 import { useGetMyProfile, getGetMyProfileQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { signOut } from "@/lib/api";
-import { useQueryClient } from "@tanstack/react-query";
+import { getRoleMenuAccess, signOut } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BrandLogo } from "./brand-logo";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: profile, isLoading } = useGetMyProfile({
     query: { retry: false, refetchOnWindowFocus: false } as any,
   });
+  const { data: menuAccess } = useQuery({
+    queryKey: ["/api/role-menu-access"],
+    queryFn: getRoleMenuAccess,
+    enabled: profile?.role === "admin" || profile?.role === "owner",
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
@@ -53,26 +60,46 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   };
 
   const navItems = [
-    { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { label: "Site Content", href: "/admin/content", icon: FileText },
-    { label: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
-    { label: "Pipeline", href: "/admin/pipeline", icon: LayoutDashboard },
-    { label: "Appointments", href: "/admin/appointments", icon: CalendarDays },
-    { label: "Consultants", href: "/admin/consultants", icon: Users },
-    { label: "Programs", href: "/admin/programs", icon: GraduationCap },
-    { label: "Destinations", href: "/admin/destinations", icon: Map },
-    { label: "Gallery", href: "/admin/gallery", icon: ImageIcon },
-    { label: "Testimonials", href: "/admin/testimonials", icon: MessageCircle },
-    { label: "Users", href: "/admin/users", icon: Users },
-    { label: "Notifications", href: "/admin/notifications", icon: Bell },
-    { label: "Documents", href: "/admin/documents", icon: FileText },
+    { id: "dashboard", label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { id: "content", label: "Site Content", href: "/admin/content", icon: FileText },
+    { id: "inquiries", label: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
+    { id: "pipeline", label: "Pipeline", href: "/admin/pipeline", icon: LayoutDashboard },
+    { id: "appointments", label: "Appointments", href: "/admin/appointments", icon: CalendarDays },
+    { id: "consultants", label: "Consultants", href: "/admin/consultants", icon: Users },
+    { id: "programs", label: "Programs", href: "/admin/programs", icon: GraduationCap },
+    { id: "countries", label: "Countries", href: "/admin/destinations", icon: Map },
+    { id: "gallery", label: "Gallery", href: "/admin/gallery", icon: ImageIcon },
+    { id: "testimonials", label: "Testimonials", href: "/admin/testimonials", icon: MessageCircle },
+    { id: "users", label: "Users", href: "/admin/users", icon: Users },
+    { id: "roles", label: "Roles", href: "/admin/roles", icon: UserCog },
+    { id: "notifications", label: "Notifications", href: "/admin/notifications", icon: Bell },
+    { id: "templates", label: "Templates", href: "/admin/templates", icon: NotebookText },
+    { id: "documents", label: "Documents", href: "/admin/documents", icon: FileText },
   ];
 
   if (profile.role === "owner") {
     navItems.push(
-      { label: "Owner Settings", href: "/admin/settings", icon: FileText },
-      { label: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
+      { id: "settings", label: "Owner Settings", href: "/admin/settings", icon: FileText },
+      { id: "auditLogs", label: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
     );
+  }
+
+  const visibleNavItems =
+    profile.role === "owner"
+      ? navItems
+      : navItems.filter((item) => (menuAccess?.admin || []).includes(item.id));
+
+  const currentNavItem = navItems
+    .filter((item) => item.href !== "/admin")
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((item) => location.startsWith(item.href)) || navItems.find((item) => item.href === location);
+  const canAccessCurrentPage =
+    profile.role === "owner" ||
+    !currentNavItem ||
+    (menuAccess?.admin || []).includes(currentNavItem.id);
+
+  if (!canAccessCurrentPage) {
+    return <Redirect to="/admin" />;
   }
 
   const roleTone =
@@ -117,7 +144,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-5">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link

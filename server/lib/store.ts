@@ -218,6 +218,10 @@ export interface AppStore {
   adminInvites: AdminInviteRecord[];
   notificationTemplates: NotificationTemplateRecord[];
   studentDocuments: StudentDocumentRecord[];
+  roleMenuAccess: {
+    admin: string[];
+    userPortal: string[];
+  };
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -621,6 +625,24 @@ const seedStore: AppStore = {
     },
   ],
   studentDocuments: [],
+  roleMenuAccess: {
+    admin: [
+      "dashboard",
+      "content",
+      "inquiries",
+      "pipeline",
+      "appointments",
+      "consultants",
+      "programs",
+      "countries",
+      "gallery",
+      "testimonials",
+      "notifications",
+      "templates",
+      "documents",
+    ],
+    userPortal: ["hero", "profile", "inquiries", "programs", "documents"],
+  },
 };
 
 let writeChain = Promise.resolve();
@@ -740,6 +762,14 @@ function normalizeStore(store: AppStore): boolean {
   }
   if (!store.studentDocuments) {
     store.studentDocuments = [];
+    changed = true;
+  }
+  if (!store.roleMenuAccess) {
+    store.roleMenuAccess = cloneStore(seedStore).roleMenuAccess;
+    changed = true;
+  }
+  if (!store.roleMenuAccess.userPortal) {
+    store.roleMenuAccess.userPortal = cloneStore(seedStore).roleMenuAccess.userPortal;
     changed = true;
   }
   if (!store.consultants) {
