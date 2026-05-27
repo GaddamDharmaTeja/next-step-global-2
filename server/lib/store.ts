@@ -724,6 +724,14 @@ function normalizeStore(store: AppStore): boolean {
     store.notificationTemplates = cloneStore(seedStore).notificationTemplates;
     changed = true;
   }
+  const seenTemplateIds = new Set<string>();
+  for (const template of store.notificationTemplates) {
+    if (!template.id || seenTemplateIds.has(template.id)) {
+      template.id = `${template.id || "template"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      changed = true;
+    }
+    seenTemplateIds.add(template.id);
+  }
   for (const seedTemplate of seedStore.notificationTemplates) {
     if (seedTemplate.purpose && !store.notificationTemplates.some((entry) => entry.purpose === seedTemplate.purpose)) {
       store.notificationTemplates.push({ ...seedTemplate });

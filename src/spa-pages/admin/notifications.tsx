@@ -115,8 +115,8 @@ export default function AdminNotificationsPage() {
                 <Select onValueChange={loadTemplate}>
                   <SelectTrigger><SelectValue placeholder="Load a template" /></SelectTrigger>
                   <SelectContent>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>{template.name} ({template.purpose || "general"})</SelectItem>
+                    {templates.map((template, index) => (
+                      <SelectItem key={`${template.id}-${index}`} value={template.id}>{template.name} ({template.purpose || "general"})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
