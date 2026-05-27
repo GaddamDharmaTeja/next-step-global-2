@@ -56,6 +56,33 @@ function priorityLabel(score: number) {
   return "Routine";
 }
 
+function buildReplyTemplate(inquiry: AdminInquiry) {
+  return [
+    `Hi ${inquiry.name || "there"},`,
+    "",
+    "Thank you for contacting NextStep Global.",
+    `We received your inquiry about "${inquiry.subject}".`,
+    "",
+    "Our counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.",
+    "",
+    "Please share your preferred study destination, current qualification, and intake timeline so we can assist you better.",
+    "",
+    "Regards,",
+    "NextStep Global",
+  ].join("\n");
+}
+
+function buildMailToLink(inquiry: AdminInquiry) {
+  const subject = `NextStep Global - ${inquiry.subject || "Your study abroad inquiry"}`;
+  return `mailto:${inquiry.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildReplyTemplate(inquiry))}`;
+}
+
+function buildWhatsAppLink(inquiry: AdminInquiry) {
+  const rawPhone = String(inquiry.whatsapp || inquiry.phone || "").replace(/\D/g, "");
+  if (!rawPhone) return null;
+  return `https://wa.me/${rawPhone}?text=${encodeURIComponent(buildReplyTemplate(inquiry))}`;
+}
+
 export default function AdminInquiriesPage() {
   const { data: rawInquiries, isLoading } = useListInquiries();
   const inquiries = (rawInquiries ?? []) as AdminInquiry[];
@@ -193,7 +220,10 @@ export default function AdminInquiriesPage() {
                   </TableCell>
                 </TableRow>
               )}
-              {filteredInquiries.map((inq) => (
+              {filteredInquiries.map((inq) => {
+                const whatsAppLink = buildWhatsAppLink(inq);
+
+                return (
                 <TableRow key={inq.id}>
                   <TableCell className="min-w-[220px]">
                     <div className="font-medium">{inq.name}</div>
@@ -245,13 +275,13 @@ export default function AdminInquiriesPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="icon" asChild title="Email lead">
-                        <a href={`mailto:${inq.email}?subject=${encodeURIComponent(`NextStep Global: ${inq.subject}`)}`}>
+                        <a href={buildMailToLink(inq)}>
                           <Mail className="h-4 w-4" />
                         </a>
                       </Button>
-                      {(inq.whatsapp || inq.phone) && (
+                      {whatsAppLink && (
                         <Button variant="outline" size="icon" asChild title="Open WhatsApp">
-                          <a href={`https://wa.me/${String(inq.whatsapp || inq.phone).replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
+                          <a href={whatsAppLink} target="_blank" rel="noreferrer">
                             <MessageCircle className="h-4 w-4" />
                           </a>
                         </Button>
@@ -264,7 +294,8 @@ export default function AdminInquiriesPage() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+              })}
             </TableBody>
           </Table>
         </div>
