@@ -79,6 +79,21 @@ export interface RoleMenuAccessRecord {
   userPortal: string[];
 }
 
+export interface DatabaseCollectionStat {
+  key: string;
+  label: string;
+  count: number;
+  bytes: number;
+  clearable: boolean;
+}
+
+export interface DatabaseStatsRecord {
+  totalBytes: number;
+  collections: DatabaseCollectionStat[];
+  updatedAt: string;
+  cleared?: string[];
+}
+
 export interface InquiryRecord {
   id: number;
   name: string;
@@ -392,6 +407,17 @@ export async function updateOwnerSettings(payload: OwnerSettingsRecord) {
   return request<OwnerSettingsRecord>("/api/owner-settings", {
     method: "PATCH",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function getDatabaseStats() {
+  return request<DatabaseStatsRecord>("/api/owner-settings/database", { method: "GET" });
+}
+
+export async function clearDatabaseCollections(collections: string[]) {
+  return request<DatabaseStatsRecord>("/api/owner-settings/database/clear", {
+    method: "POST",
+    body: JSON.stringify({ collections }),
   });
 }
 

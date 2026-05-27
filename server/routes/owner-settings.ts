@@ -4,6 +4,36 @@ import { requireOwner } from "../lib/auth";
 
 const router = Router();
 
+const clearableCollections = new Set([
+  "inquiries",
+  "programs",
+  "gallery",
+  "testimonials",
+  "destinations",
+  "consultants",
+  "appointments",
+  "auditLogs",
+  "adminInvites",
+  "notificationTemplates",
+  "studentDocuments",
+]);
+
+function byteSize(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+function getCollectionStats(store: any) {
+  return Object.entries(store)
+    .filter(([, value]) => Array.isArray(value))
+    .map(([key, value]) => ({
+      key,
+      label: key.replace(/([A-Z])/g, " $1").replace(/^./, (char) => char.toUpperCase()),
+      count: Array.isArray(value) ? value.length : 0,
+      bytes: byteSize(value),
+      clearable: clearableCollections.has(key),
+    }));
+}
+
 router.get("/", requireOwner, async (req, res): Promise<void> => {
   try {
     const store = await readStore();
@@ -47,6 +77,60 @@ router.patch("/", requireOwner, async (req, res): Promise<void> => {
   } catch (err) {
     req.log.error({ err }, "Failed to update owner settings");
     res.status(500).json({ error: "Failed to update owner settings" });
+  }
+});
+
+router.get("/database", requireOwner, async (req, res): Promise<void> => {
+  try {
+    const store = await readStore();
+    res.json({
+      totalBytes: byteSize(store),
+      collections: getCollectionStats(store),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to load database stats");
+    res.status(500).json({ error: "Failed to load database stats" });
+  }
+});
+
+router.post("/database/clear", requireOwner, async (req, res): Promise<void> => {
+  const collections = Array.isArray(req.body?.collections)
+    ? req.body.collections.map(String).filter((key: string) => clearableCollections.has(key))
+    : [];
+
+  if (collections.length === 0) {
+    res.status(400).json({ error: "Select at least one clearable collection" });
+    return;
+  }
+
+  try {
+    const updated = await updateStore((store: any) => {
+      for (const collection of collections) {
+        store[collection] = [];
+      }
+      store.auditLogs.unshift(
+        createAuditLogEntry({
+          actorUserId: req.authUser?.id,
+          actorName: req.authUser?.name || req.authUser?.email || "Owner",
+          actorRole: req.authUser?.role || "owner",
+          action: "database.collections.cleared",
+          entityType: "database",
+          entityId: "app-store",
+          summary: `Cleared collections: ${collections.join(", ")}`,
+        }),
+      );
+      return {
+        totalBytes: byteSize(store),
+        collections: getCollectionStats(store),
+        cleared: collections,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+    res.json(updated);
+  } catch (err) {
+    req.log.error({ err }, "Failed to clear database collections");
+    res.status(500).json({ error: "Failed to clear database collections" });
   }
 });
 
