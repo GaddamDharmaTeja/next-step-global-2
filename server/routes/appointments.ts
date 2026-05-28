@@ -31,6 +31,8 @@ router.post("/", async (req, res): Promise<void> => {
       email,
       phone,
       destination,
+      assignedToUserId: null,
+      assignedToName: null,
       preferredDate,
       preferredTime,
       notes,
@@ -47,6 +49,8 @@ router.post("/", async (req, res): Promise<void> => {
 router.patch("/:appointmentId", requireAdmin, async (req, res): Promise<void> => {
   const appointmentId = Number(req.params.appointmentId);
   const status = typeof req.body?.status === "string" ? req.body.status : "";
+  const destination = typeof req.body?.destination === "string" ? req.body.destination.trim() : undefined;
+  const assignedToUserId = typeof req.body?.assignedToUserId === "string" ? req.body.assignedToUserId.trim() : undefined;
   const preferredDate = typeof req.body?.preferredDate === "string" ? req.body.preferredDate.trim() : undefined;
   const preferredTime = typeof req.body?.preferredTime === "string" ? req.body.preferredTime.trim() : undefined;
   const notes = typeof req.body?.notes === "string" ? req.body.notes.trim() : undefined;
@@ -60,6 +64,12 @@ router.patch("/:appointmentId", requireAdmin, async (req, res): Promise<void> =>
     const appointment = store.appointments.find((entry) => entry.id === appointmentId);
     if (!appointment) return null;
     if (status) appointment.status = status as AppointmentStatus;
+    if (destination !== undefined) appointment.destination = destination || null;
+    if (assignedToUserId !== undefined) {
+      const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && (user.role === "admin" || user.role === "owner"));
+      appointment.assignedToUserId = assignee?.id ?? null;
+      appointment.assignedToName = assignee ? assignee.name || assignee.email : null;
+    }
     if (preferredDate !== undefined) appointment.preferredDate = preferredDate;
     if (preferredTime !== undefined) appointment.preferredTime = preferredTime;
     if (notes !== undefined) appointment.notes = notes || null;

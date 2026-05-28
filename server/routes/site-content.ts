@@ -30,6 +30,29 @@ function cleanServices(value: unknown, fallback: SiteContentRecord["services"]) 
   return services.length ? services : fallback;
 }
 
+function cleanFaqs(value: unknown, fallback: SiteContentRecord["faqs"]) {
+  if (!Array.isArray(value)) return fallback;
+  const faqs = value
+    .map((entry) => ({
+      question: cleanString(entry?.question),
+      answer: cleanString(entry?.answer),
+    }))
+    .filter((entry) => entry.question && entry.answer);
+  return faqs.length ? faqs : fallback;
+}
+
+function cleanIntakeTimeline(value: unknown, fallback: SiteContentRecord["intakeTimeline"]) {
+  if (!Array.isArray(value)) return fallback;
+  const intakes = value
+    .map((entry) => ({
+      intake: cleanString(entry?.intake),
+      deadline: cleanString(entry?.deadline),
+      description: cleanString(entry?.description),
+    }))
+    .filter((entry) => entry.intake && entry.deadline && entry.description);
+  return intakes.length ? intakes : fallback;
+}
+
 function cleanStringList(value: unknown, fallback: string[]) {
   if (!Array.isArray(value)) return fallback;
   const items = value
@@ -55,6 +78,8 @@ router.patch("/", requireAdmin, async (req, res): Promise<void> => {
       mentorshipTitle: cleanString(req.body?.mentorshipTitle, store.siteContent.mentorshipTitle),
       mentorshipSubtitle: cleanString(req.body?.mentorshipSubtitle, store.siteContent.mentorshipSubtitle),
       services: cleanServices(req.body?.services, store.siteContent.services),
+      faqs: cleanFaqs(req.body?.faqs, store.siteContent.faqs),
+      intakeTimeline: cleanIntakeTimeline(req.body?.intakeTimeline, store.siteContent.intakeTimeline),
       aboutTitle: cleanString(req.body?.aboutTitle, store.siteContent.aboutTitle),
       aboutText: cleanString(req.body?.aboutText, store.siteContent.aboutText),
       aboutHighlights: cleanStringList(req.body?.aboutHighlights, store.siteContent.aboutHighlights),

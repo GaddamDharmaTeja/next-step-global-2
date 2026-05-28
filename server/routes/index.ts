@@ -17,6 +17,7 @@ import adminInvitesRouter from "./admin-invites";
 import notificationTemplatesRouter from "./notification-templates";
 import studentDocumentsRouter from "./student-documents";
 import roleMenuAccessRouter from "./role-menu-access";
+import userPositionsRouter from "./user-positions";
 
 const router: IRouter = Router();
 
@@ -34,6 +35,7 @@ router.use("/notifications", notificationsRouter);
 router.use("/notification-templates", notificationTemplatesRouter);
 router.use("/student-documents", studentDocumentsRouter);
 router.use("/role-menu-access", roleMenuAccessRouter);
+router.use("/user-positions", userPositionsRouter);
 router.use("/owner-settings", ownerSettingsRouter);
 router.use("/audit-logs", auditLogsRouter);
 router.use("/admin-invites", adminInvitesRouter);

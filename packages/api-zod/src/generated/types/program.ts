@@ -14,6 +14,17 @@ export interface Program {
   duration: string;
   /** @nullable */
   imageUrl?: string | null;
+  /** @nullable */
+  tuitionFee?: string | null;
+  intakeMonths: string[];
+  /** @nullable */
+  eligibility?: string | null;
+  /** @nullable */
+  englishRequirement?: string | null;
+  /** @nullable */
+  applicationDeadline?: string | null;
+  scholarshipAvailable: boolean;
+  careerOutcomes: string[];
   featured: boolean;
   createdAt: string;
 }

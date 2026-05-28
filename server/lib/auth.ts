@@ -14,6 +14,10 @@ export interface PublicUser {
   name: string | null;
   phone: string | null;
   role: UserRecord["role"];
+  positionId?: string | null;
+  positionName?: string | null;
+  reportsToUserId?: string | null;
+  reportsToName?: string | null;
   createdAt: string;
 }
 
@@ -50,6 +54,10 @@ export function toPublicUser(user: UserRecord): PublicUser {
     name: user.name,
     phone: user.phone,
     role: user.role,
+    positionId: user.positionId ?? null,
+    positionName: user.positionName ?? null,
+    reportsToUserId: user.reportsToUserId ?? null,
+    reportsToName: user.reportsToName ?? null,
     createdAt: user.createdAt,
   };
 }

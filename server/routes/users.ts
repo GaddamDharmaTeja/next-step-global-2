@@ -52,6 +52,10 @@ router.post("/signup", async (req, res): Promise<void> => {
         name: name || null,
         phone: phone || null,
         role,
+        positionId: null,
+        positionName: null,
+        reportsToUserId: null,
+        reportsToName: null,
         passwordHash,
         createdAt: new Date().toISOString(),
       };
@@ -189,6 +193,53 @@ router.patch("/:userId/role", requireOwner, async (req, res): Promise<void> => {
   } catch (err) {
     req.log.error({ err }, "Failed to update user role");
     res.status(500).json({ error: "Failed to update user role" });
+  }
+});
+
+router.patch("/:userId/profile", requireOwner, async (req, res): Promise<void> => {
+  const userId = req.params.userId;
+  const positionId = typeof req.body?.positionId === "string" ? req.body.positionId.trim() : undefined;
+  const reportsToUserId = typeof req.body?.reportsToUserId === "string" ? req.body.reportsToUserId.trim() : undefined;
+
+  try {
+    const updated = await updateStore((store) => {
+      const user = store.users.find((entry) => entry.id === userId || entry.clerkId === userId);
+      if (!user || !user.passwordHash) return null;
+
+      if (positionId !== undefined) {
+        const position = store.userPositions.find((entry) => entry.id === positionId);
+        user.positionId = position?.id ?? null;
+        user.positionName = position?.name ?? null;
+      }
+
+      if (reportsToUserId !== undefined) {
+        const manager = store.users.find((entry) => entry.id === reportsToUserId && entry.passwordHash);
+        user.reportsToUserId = manager?.id ?? null;
+        user.reportsToName = manager ? manager.name || manager.email : null;
+      }
+
+      store.auditLogs.unshift(
+        createAuditLogEntry({
+          actorUserId: req.authUser?.id,
+          actorName: req.authUser?.name || req.authUser?.email || "Owner",
+          actorRole: req.authUser?.role || "owner",
+          action: "user.profile.updated",
+          entityType: "user",
+          entityId: user.id,
+          summary: `Updated ${user.email} position/reporting details`,
+        }),
+      );
+      return user;
+    });
+
+    if (!updated) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    res.json(toPublicUser(updated));
+  } catch (err) {
+    req.log.error({ err }, "Failed to update user profile");
+    res.status(500).json({ error: "Failed to update user profile" });
   }
 });
 

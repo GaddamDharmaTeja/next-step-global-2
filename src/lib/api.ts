@@ -14,6 +14,10 @@ export interface SessionUser {
   name?: string | null;
   phone?: string | null;
   role: "user" | "admin" | "owner";
+  positionId?: string | null;
+  positionName?: string | null;
+  reportsToUserId?: string | null;
+  reportsToName?: string | null;
   createdAt: string;
 }
 
@@ -70,8 +74,20 @@ export interface StudentDocumentRecord {
   contentType: string;
   sizeBytes: number;
   status: "uploaded" | "reviewing" | "approved" | "rejected";
+  documentType?: string | null;
+  assignedToUserId?: string | null;
+  assignedToName?: string | null;
   note?: string | null;
   uploadedAt: string;
+}
+
+export interface UserPositionRecord {
+  id: string;
+  name: string;
+  level: number;
+  description?: string | null;
+  reportsToPositionId?: string | null;
+  createdAt: string;
 }
 
 export interface RoleMenuAccessRecord {
@@ -143,6 +159,8 @@ export interface AppointmentRecord {
   email: string;
   phone: string;
   destination?: string | null;
+  assignedToUserId?: string | null;
+  assignedToName?: string | null;
   preferredDate: string;
   preferredTime: string;
   notes?: string | null;
@@ -188,6 +206,8 @@ export interface SiteContentRecord {
   mentorshipTitle: string;
   mentorshipSubtitle: string;
   services: Array<{ title: string; text: string }>;
+  faqs: Array<{ question: string; answer: string }>;
+  intakeTimeline: Array<{ intake: string; deadline: string; description: string }>;
   aboutTitle: string;
   aboutText: string;
   aboutHighlights: string[];
@@ -260,6 +280,23 @@ function normalizeSiteContentRecord(record: SiteContentRecord): SiteContentRecor
             text: asString(service?.text),
           }))
           .filter((service) => service.title || service.text)
+      : [],
+    faqs: Array.isArray(record.faqs)
+      ? record.faqs
+          .map((faq) => ({
+            question: asString(faq?.question),
+            answer: asString(faq?.answer),
+          }))
+          .filter((faq) => faq.question || faq.answer)
+      : [],
+    intakeTimeline: Array.isArray(record.intakeTimeline)
+      ? record.intakeTimeline
+          .map((intake) => ({
+            intake: asString(intake?.intake),
+            deadline: asString(intake?.deadline),
+            description: asString(intake?.description),
+          }))
+          .filter((intake) => intake.intake || intake.deadline || intake.description)
       : [],
     aboutHighlights: asStringArray(record.aboutHighlights),
   };
@@ -452,6 +489,41 @@ export async function deleteUser(userId: string) {
   }
 }
 
+export async function updateUserProfile(userId: string, payload: { positionId?: string; reportsToUserId?: string }) {
+  return request<SessionUser>(`/api/users/${userId}/profile`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listUserPositions() {
+  return request<UserPositionRecord[]>("/api/user-positions", { method: "GET" });
+}
+
+export async function createUserPosition(payload: { name: string; level: number; description?: string | null; reportsToPositionId?: string | null }) {
+  return request<UserPositionRecord>("/api/user-positions", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateUserPosition(positionId: string, payload: Partial<{ name: string; level: number; description: string | null; reportsToPositionId: string | null }>) {
+  return request<UserPositionRecord>(`/api/user-positions/${positionId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteUserPosition(positionId: string) {
+  const response = await fetch(apiUrl(`/api/user-positions/${positionId}`), {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok && response.status !== 204) {
+    throw new Error("Failed to delete position");
+  }
+}
+
 export async function listNotificationTemplates() {
   return request<NotificationTemplateRecord[]>("/api/notification-templates", { method: "GET" });
 }
@@ -493,7 +565,15 @@ export async function listStudentDocuments() {
   return request<StudentDocumentRecord[]>("/api/student-documents", { method: "GET" });
 }
 
-export async function updateStudentDocument(documentId: string, payload: { status?: StudentDocumentRecord["status"]; note?: string | null }) {
+export async function updateStudentDocument(
+  documentId: string,
+  payload: {
+    status?: StudentDocumentRecord["status"];
+    documentType?: string | null;
+    assignedToUserId?: string | null;
+    note?: string | null;
+  },
+) {
   return request<StudentDocumentRecord>(`/api/student-documents/${documentId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
@@ -600,7 +680,7 @@ export async function listAppointments() {
 
 export async function updateAppointment(
   appointmentId: number,
-  payload: Partial<Pick<AppointmentRecord, "status" | "preferredDate" | "preferredTime" | "notes">>,
+  payload: Partial<Pick<AppointmentRecord, "status" | "destination" | "assignedToUserId" | "preferredDate" | "preferredTime" | "notes">>,
 ) {
   return request<AppointmentRecord>(`/api/appointments/${appointmentId}`, {
     method: "PATCH",

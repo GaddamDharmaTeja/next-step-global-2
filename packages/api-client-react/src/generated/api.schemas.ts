@@ -27,6 +27,10 @@ export interface UserProfile {
   /** @nullable */
   phone?: string | null;
   role: UserProfileRole;
+  positionId?: string | null;
+  positionName?: string | null;
+  reportsToUserId?: string | null;
+  reportsToName?: string | null;
   createdAt: string;
 }
 
@@ -96,6 +100,17 @@ export interface Program {
   duration: string;
   /** @nullable */
   imageUrl?: string | null;
+  /** @nullable */
+  tuitionFee?: string | null;
+  intakeMonths: string[];
+  /** @nullable */
+  eligibility?: string | null;
+  /** @nullable */
+  englishRequirement?: string | null;
+  /** @nullable */
+  applicationDeadline?: string | null;
+  scholarshipAvailable: boolean;
+  careerOutcomes: string[];
   featured: boolean;
   createdAt: string;
 }
@@ -106,6 +121,13 @@ export interface ProgramInput {
   country: string;
   duration: string;
   imageUrl?: string;
+  tuitionFee?: string;
+  intakeMonths?: string[];
+  eligibility?: string;
+  englishRequirement?: string;
+  applicationDeadline?: string;
+  scholarshipAvailable?: boolean;
+  careerOutcomes?: string[];
   featured?: boolean;
 }
 
@@ -115,6 +137,13 @@ export interface ProgramUpdate {
   country?: string;
   duration?: string;
   imageUrl?: string;
+  tuitionFee?: string;
+  intakeMonths?: string[];
+  eligibility?: string;
+  englishRequirement?: string;
+  applicationDeadline?: string;
+  scholarshipAvailable?: boolean;
+  careerOutcomes?: string[];
   featured?: boolean;
 }
 

@@ -18,7 +18,20 @@ export interface UserRecord {
   name: string | null;
   phone: string | null;
   role: UserRole;
+  positionId?: string | null;
+  positionName?: string | null;
+  reportsToUserId?: string | null;
+  reportsToName?: string | null;
   passwordHash?: string | null;
+  createdAt: string;
+}
+
+export interface UserPositionRecord {
+  id: string;
+  name: string;
+  level: number;
+  description: string | null;
+  reportsToPositionId: string | null;
   createdAt: string;
 }
 
@@ -46,6 +59,13 @@ export interface ProgramRecord {
   country: string;
   duration: string;
   imageUrl: string | null;
+  tuitionFee: string | null;
+  intakeMonths: string[];
+  eligibility: string | null;
+  englishRequirement: string | null;
+  applicationDeadline: string | null;
+  scholarshipAvailable: boolean;
+  careerOutcomes: string[];
   featured: boolean;
   createdAt: string;
 }
@@ -109,6 +129,8 @@ export interface AppointmentRecord {
   email: string;
   phone: string;
   destination: string | null;
+  assignedToUserId: string | null;
+  assignedToName: string | null;
   preferredDate: string;
   preferredTime: string;
   notes: string | null;
@@ -126,6 +148,17 @@ export interface SiteServiceRecord {
   text: string;
 }
 
+export interface SiteFaqRecord {
+  question: string;
+  answer: string;
+}
+
+export interface SiteIntakeRecord {
+  intake: string;
+  deadline: string;
+  description: string;
+}
+
 export interface SiteContentRecord {
   heroTitle: string;
   heroAccent: string;
@@ -136,6 +169,8 @@ export interface SiteContentRecord {
   mentorshipTitle: string;
   mentorshipSubtitle: string;
   services: SiteServiceRecord[];
+  faqs: SiteFaqRecord[];
+  intakeTimeline: SiteIntakeRecord[];
   aboutTitle: string;
   aboutText: string;
   aboutHighlights: string[];
@@ -199,12 +234,16 @@ export interface StudentDocumentRecord {
   contentType: string;
   sizeBytes: number;
   status: DocumentStatus;
+  documentType: string | null;
+  assignedToUserId: string | null;
+  assignedToName: string | null;
   note: string | null;
   uploadedAt: string;
 }
 
 export interface AppStore {
   users: UserRecord[];
+  userPositions: UserPositionRecord[];
   inquiries: InquiryRecord[];
   programs: ProgramRecord[];
   gallery: GalleryImageRecord[];
@@ -282,6 +321,37 @@ function normalizeSiteServices(value: unknown, fallback: SiteServiceRecord[]): S
   return normalized.length > 0 ? normalized : fallback;
 }
 
+function normalizeSiteFaqs(value: unknown, fallback: SiteFaqRecord[]): SiteFaqRecord[] {
+  if (!Array.isArray(value)) {
+    return cloneStore({ ...seedStore, siteContent: { ...seedStore.siteContent, faqs: fallback } }).siteContent.faqs;
+  }
+
+  const normalized = value
+    .map((faq) => ({
+      question: typeof faq?.question === "string" ? faq.question : "",
+      answer: typeof faq?.answer === "string" ? faq.answer : "",
+    }))
+    .filter((faq) => faq.question || faq.answer);
+
+  return normalized.length > 0 ? normalized : fallback;
+}
+
+function normalizeSiteIntakes(value: unknown, fallback: SiteIntakeRecord[]): SiteIntakeRecord[] {
+  if (!Array.isArray(value)) {
+    return cloneStore({ ...seedStore, siteContent: { ...seedStore.siteContent, intakeTimeline: fallback } }).siteContent.intakeTimeline;
+  }
+
+  const normalized = value
+    .map((intake) => ({
+      intake: typeof intake?.intake === "string" ? intake.intake : "",
+      deadline: typeof intake?.deadline === "string" ? intake.deadline : "",
+      description: typeof intake?.description === "string" ? intake.description : "",
+    }))
+    .filter((intake) => intake.intake || intake.deadline || intake.description);
+
+  return normalized.length > 0 ? normalized : fallback;
+}
+
 const seedStore: AppStore = {
   users: [
     {
@@ -291,7 +361,29 @@ const seedStore: AppStore = {
       name: "NextStep Admin",
       phone: null,
       role: "owner",
+      positionId: null,
+      positionName: null,
+      reportsToUserId: null,
+      reportsToName: null,
       passwordHash: null,
+      createdAt: "2026-05-12T00:00:00.000Z",
+    },
+  ],
+  userPositions: [
+    {
+      id: "senior-counselor",
+      name: "Senior Counselor",
+      level: 2,
+      description: "Handles counseling ownership, student follow-up, and application planning.",
+      reportsToPositionId: null,
+      createdAt: "2026-05-12T00:00:00.000Z",
+    },
+    {
+      id: "document-reviewer",
+      name: "Document Reviewer",
+      level: 3,
+      description: "Reviews uploaded student documents and keeps checklist status updated.",
+      reportsToPositionId: "senior-counselor",
       createdAt: "2026-05-12T00:00:00.000Z",
     },
   ],
@@ -304,6 +396,13 @@ const seedStore: AppStore = {
       country: "Canada",
       duration: "2 Years",
       imageUrl: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?q=80&w=1200&auto=format&fit=crop",
+      tuitionFee: "CAD 18,000 - 36,000/year",
+      intakeMonths: ["January", "May", "September"],
+      eligibility: "Bachelor degree with 55% or above; work experience preferred for MBA pathways.",
+      englishRequirement: "IELTS 6.5 overall or equivalent accepted English test.",
+      applicationDeadline: "Apply 4-6 months before intake",
+      scholarshipAvailable: true,
+      careerOutcomes: ["Business Analyst", "Marketing Manager", "Operations Lead", "Entrepreneurship"],
       featured: true,
       createdAt: "2026-05-12T00:00:00.000Z",
     },
@@ -314,6 +413,13 @@ const seedStore: AppStore = {
       country: "Australia",
       duration: "2 Years",
       imageUrl: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop",
+      tuitionFee: "AUD 24,000 - 42,000/year",
+      intakeMonths: ["February", "July", "November"],
+      eligibility: "Bachelor degree in relevant stream with strong academic records.",
+      englishRequirement: "IELTS 6.5 overall or PTE equivalent.",
+      applicationDeadline: "Apply 5-7 months before intake",
+      scholarshipAvailable: true,
+      careerOutcomes: ["Software Engineer", "Data Analyst", "Research Assistant", "Project Coordinator"],
       featured: true,
       createdAt: "2026-05-12T00:00:00.000Z",
     },
@@ -556,6 +662,41 @@ const seedStore: AppStore = {
         text: "Test preparation classes help improve exam confidence and readiness.",
       },
     ],
+    intakeTimeline: [
+      {
+        intake: "January 2026",
+        deadline: "Apply by August - October 2025",
+        description: "Best for students who already have documents ready and want an early-year start.",
+      },
+      {
+        intake: "May 2026",
+        deadline: "Apply by December 2025 - February 2026",
+        description: "Useful for students waiting for final semester results or English test scores.",
+      },
+      {
+        intake: "September 2026",
+        deadline: "Apply by March - June 2026",
+        description: "Major intake with the widest university and scholarship availability.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Can I apply without IELTS?",
+        answer: "Some universities accept MOI, Duolingo, PTE, or internal English assessment. It depends on the country, university, and program.",
+      },
+      {
+        question: "When should I start my study abroad application?",
+        answer: "Start at least 6-9 months before your target intake so there is enough time for shortlisting, documents, applications, scholarships, and visa preparation.",
+      },
+      {
+        question: "Do you help with scholarships?",
+        answer: "Yes. We help identify merit scholarships, early application discounts, fee waivers, and university-specific funding options.",
+      },
+      {
+        question: "What documents are usually required?",
+        answer: "Common documents include transcripts, passport, English test score, SOP, LORs, resume, financial proof, and country-specific visa documents.",
+      },
+    ],
     aboutTitle: "Welcome to NextStep Global",
     aboutText:
       "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities, offering expertise across law, medicine, business, and other academic fields.",
@@ -698,6 +839,10 @@ function normalizeStore(store: AppStore): boolean {
     store.destinations = cloneStore(seedStore).destinations;
     changed = true;
   }
+  if (!store.userPositions) {
+    store.userPositions = cloneStore(seedStore).userPositions;
+    changed = true;
+  }
   if (!store.siteContent) {
     store.siteContent = cloneStore(seedStore).siteContent;
     changed = true;
@@ -715,6 +860,16 @@ function normalizeStore(store: AppStore): boolean {
   const normalizedServices = normalizeSiteServices(store.siteContent.services, seedSiteContent.services);
   if (JSON.stringify(normalizedServices) !== JSON.stringify(store.siteContent.services)) {
     store.siteContent.services = normalizedServices;
+    changed = true;
+  }
+  const normalizedFaqs = normalizeSiteFaqs(store.siteContent.faqs, seedSiteContent.faqs);
+  if (JSON.stringify(normalizedFaqs) !== JSON.stringify(store.siteContent.faqs)) {
+    store.siteContent.faqs = normalizedFaqs;
+    changed = true;
+  }
+  const normalizedIntakes = normalizeSiteIntakes(store.siteContent.intakeTimeline, seedSiteContent.intakeTimeline);
+  if (JSON.stringify(normalizedIntakes) !== JSON.stringify(store.siteContent.intakeTimeline)) {
+    store.siteContent.intakeTimeline = normalizedIntakes;
     changed = true;
   }
   const normalizedAboutHighlights = normalizeStringArray(store.siteContent.aboutHighlights, seedSiteContent.aboutHighlights);
@@ -823,6 +978,84 @@ function normalizeStore(store: AppStore): boolean {
     }
     if (inquiry.assignedToName === undefined) {
       inquiry.assignedToName = null;
+      changed = true;
+    }
+  }
+
+  for (const program of store.programs) {
+    if (program.tuitionFee === undefined) {
+      program.tuitionFee = null;
+      changed = true;
+    }
+    const normalizedIntakeMonths = normalizeStringArray(program.intakeMonths);
+    if (JSON.stringify(normalizedIntakeMonths) !== JSON.stringify(program.intakeMonths)) {
+      program.intakeMonths = normalizedIntakeMonths;
+      changed = true;
+    }
+    if (program.eligibility === undefined) {
+      program.eligibility = null;
+      changed = true;
+    }
+    if (program.englishRequirement === undefined) {
+      program.englishRequirement = null;
+      changed = true;
+    }
+    if (program.applicationDeadline === undefined) {
+      program.applicationDeadline = null;
+      changed = true;
+    }
+    if (program.scholarshipAvailable === undefined) {
+      program.scholarshipAvailable = false;
+      changed = true;
+    }
+    const normalizedCareerOutcomes = normalizeStringArray(program.careerOutcomes);
+    if (JSON.stringify(normalizedCareerOutcomes) !== JSON.stringify(program.careerOutcomes)) {
+      program.careerOutcomes = normalizedCareerOutcomes;
+      changed = true;
+    }
+  }
+
+  for (const appointment of store.appointments) {
+    if (appointment.assignedToUserId === undefined) {
+      appointment.assignedToUserId = null;
+      changed = true;
+    }
+    if (appointment.assignedToName === undefined) {
+      appointment.assignedToName = null;
+      changed = true;
+    }
+  }
+
+  for (const user of store.users) {
+    if (user.positionId === undefined) {
+      user.positionId = null;
+      changed = true;
+    }
+    if (user.positionName === undefined) {
+      user.positionName = null;
+      changed = true;
+    }
+    if (user.reportsToUserId === undefined) {
+      user.reportsToUserId = null;
+      changed = true;
+    }
+    if (user.reportsToName === undefined) {
+      user.reportsToName = null;
+      changed = true;
+    }
+  }
+
+  for (const document of store.studentDocuments) {
+    if (document.documentType === undefined) {
+      document.documentType = null;
+      changed = true;
+    }
+    if (document.assignedToUserId === undefined) {
+      document.assignedToUserId = null;
+      changed = true;
+    }
+    if (document.assignedToName === undefined) {
+      document.assignedToName = null;
       changed = true;
     }
   }

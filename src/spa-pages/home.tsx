@@ -17,12 +17,17 @@ import { useToast } from "@/hooks/use-toast";
 import { withBasePath } from "@/lib/runtime";
 import {
   ArrowRight,
+  BadgeDollarSign,
+  BookOpenCheck,
   CalendarDays,
   CheckCircle2,
+  Clock3,
+  FileText,
   Globe2,
   GraduationCap,
   HandHeart,
   MapPin,
+  Plane,
   Quote,
   ShieldCheck,
   Star,
@@ -50,6 +55,51 @@ const appointmentSchema = z.object({
   preferredTime: z.string().min(1, "Preferred time is required"),
   notes: z.string().optional(),
 });
+
+const fallbackServices = [
+  {
+    title: "Admission Counselling",
+    text: "Shortlist courses and universities based on academics, budget, intake, location preference, and career outcomes.",
+  },
+  {
+    title: "Scholarship Guidance",
+    text: "Identify realistic scholarships, fee waivers, assistantships, and profile improvements before deadlines.",
+  },
+  {
+    title: "Visa Documentation",
+    text: "Prepare financial documents, SOPs, affidavits, sponsor proof, and visa interview responses with clear checklists.",
+  },
+];
+
+const processSteps = [
+  {
+    title: "Profile Evaluation",
+    text: "We review academics, work experience, test scores, budget, preferred intake, and destination goals.",
+    icon: UsersRound,
+  },
+  {
+    title: "Course Shortlisting",
+    text: "You get a practical university list with safe, target, and ambitious options instead of random applications.",
+    icon: BookOpenCheck,
+  },
+  {
+    title: "Applications & Documents",
+    text: "We organize SOP, LOR, resume, transcripts, financial proof, and application timelines in one flow.",
+    icon: FileText,
+  },
+  {
+    title: "Visa & Pre-departure",
+    text: "Our team helps with visa readiness, travel planning, accommodation basics, and next steps after approval.",
+    icon: Plane,
+  },
+];
+
+const destinationDetails = [
+  { country: "United Kingdom", intake: "Jan, May, Sep", tuition: "GBP 12k-28k", strength: "Fast masters, strong employability" },
+  { country: "United States", intake: "Jan, Aug", tuition: "USD 18k-45k", strength: "Research, STEM, scholarships" },
+  { country: "Australia", intake: "Feb, Jul", tuition: "AUD 22k-40k", strength: "Work rights, PR pathways" },
+  { country: "Canada", intake: "Jan, May, Sep", tuition: "CAD 16k-35k", strength: "Affordable programs, immigration options" },
+];
 
 export default function HomePage() {
   const { data: programs } = useListPrograms();
@@ -104,7 +154,9 @@ export default function HomePage() {
   const featuredTestimonials = testimonialsList.filter((t) => t.featured) || testimonialsList.slice(0, 3) || [];
   const metrics = Array.isArray(content?.metrics) ? content.metrics : [];
   const serviceIcons = [HandHeart, Globe2, ShieldCheck];
-  const services = Array.isArray(content?.services) ? content.services : [];
+  const services = Array.isArray(content?.services) && content.services.length ? content.services : fallbackServices;
+  const faqs = Array.isArray(content?.faqs) ? content.faqs : [];
+  const intakeTimeline = Array.isArray(content?.intakeTimeline) ? content.intakeTimeline : [];
   const aboutHighlights = Array.isArray(content?.aboutHighlights) && content.aboutHighlights.length
     ? content.aboutHighlights
     : ["Course shortlisting", "Scholarship strategy", "Visa documentation", "Pre-departure briefing"];
@@ -194,6 +246,48 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+            <div>
+              <div className="modern-kicker">How We Work</div>
+              <h2 className="mt-5 font-serif text-4xl font-bold text-[#07162f] md:text-5xl">
+                A clear admission roadmap from first call to departure.
+              </h2>
+              <p className="mt-6 text-lg leading-8 text-slate-600">
+                Students and parents can track every important stage: destination fit, document readiness, university responses, fee payment, visa progress, and pre-departure tasks.
+              </p>
+              <div className="mt-8 grid gap-3 text-sm font-semibold text-slate-600 sm:grid-cols-2">
+                <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 text-[#d9a31a]" /> Intake timeline planning</div>
+                <div className="flex items-center gap-2"><BadgeDollarSign className="h-4 w-4 text-[#d9a31a]" /> Budget and scholarship mapping</div>
+                <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-[#d9a31a]" /> SOP, LOR, resume support</div>
+                <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#d9a31a]" /> Visa readiness checklist</div>
+              </div>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              {processSteps.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                  <Card key={step.title} className="h-full rounded-lg border-slate-200 bg-[#f8fbff] shadow-sm">
+                    <CardContent className="p-7">
+                      <div className="flex items-center justify-between">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#101b31] text-white">
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <span className="font-serif text-3xl font-bold text-[#d9a31a]">0{index + 1}</span>
+                      </div>
+                      <h3 className="mt-6 font-serif text-2xl font-bold text-[#07162f]">{step.title}</h3>
+                      <p className="mt-4 leading-7 text-slate-600">{step.text}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="programs" className="bg-white py-24">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
@@ -237,7 +331,27 @@ export default function HomePage() {
                     <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-slate-500">
                       <GraduationCap className="h-4 w-4" /> {prog.duration}
                     </div>
+                    <div className="mt-4 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
+                      <div className="flex justify-between gap-4">
+                        <span className="font-semibold">Tuition</span>
+                        <span className="text-right font-bold text-slate-900">{prog.tuitionFee || "Contact us"}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="font-semibold">Intakes</span>
+                        <span className="text-right font-bold text-slate-900">{prog.intakeMonths?.join(", ") || "Flexible"}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="font-semibold">Scholarship</span>
+                        <span className="text-right font-bold text-slate-900">{prog.scholarshipAvailable ? "Available" : "Ask counselor"}</span>
+                      </div>
+                    </div>
                     <p className="mt-5 line-clamp-3 leading-7 text-slate-600">{prog.description}</p>
+                    {(prog.englishRequirement || prog.applicationDeadline) && (
+                      <div className="mt-5 space-y-2 text-sm leading-6 text-slate-600">
+                        {prog.englishRequirement && <p><span className="font-bold text-slate-900">English:</span> {prog.englishRequirement}</p>}
+                        {prog.applicationDeadline && <p><span className="font-bold text-slate-900">Deadline:</span> {prog.applicationDeadline}</p>}
+                      </div>
+                    )}
                     <Button
                       variant="outline"
                       className="mt-7 h-11 w-full rounded-md border-slate-300 font-semibold text-[#101b31] hover:bg-[#101b31] hover:text-white"
@@ -252,6 +366,82 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <section className="bg-[#f4f7fb] py-24">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <div className="modern-kicker">Country Planning</div>
+              <h2 className="mt-5 font-serif text-4xl font-bold text-[#07162f] md:text-5xl">Compare destinations before you apply.</h2>
+              <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
+                We help students understand intake dates, tuition ranges, work options, and post-study routes before choosing a final country.
+              </p>
+            </div>
+            <Link href="/destinations">
+              <Button className="h-12 rounded-md bg-[#101b31] px-6 text-base font-semibold text-white shadow-none hover:bg-[#172846]">
+                View Countries <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="mt-12 grid gap-5 lg:grid-cols-4">
+            {destinationDetails.map((destination) => (
+              <Card key={destination.country} className="rounded-lg border-slate-200 bg-white shadow-sm">
+                <CardContent className="p-7">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#101b31] text-white">
+                    <Globe2 className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-6 font-serif text-2xl font-bold text-[#07162f]">{destination.country}</h3>
+                  <div className="mt-6 space-y-4 text-sm text-slate-600">
+                    <div className="flex justify-between gap-4 border-t pt-4">
+                      <span className="font-semibold text-slate-500">Intakes</span>
+                      <span className="text-right font-bold text-slate-900">{destination.intake}</span>
+                    </div>
+                    <div className="flex justify-between gap-4 border-t pt-4">
+                      <span className="font-semibold text-slate-500">Tuition</span>
+                      <span className="text-right font-bold text-slate-900">{destination.tuition}</span>
+                    </div>
+                    <div className="border-t pt-4">
+                      <span className="font-semibold text-slate-500">Best For</span>
+                      <p className="mt-2 font-semibold leading-6 text-slate-900">{destination.strength}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {intakeTimeline.length > 0 && (
+        <section className="bg-white py-24">
+          <div className="mx-auto max-w-7xl px-5 lg:px-8">
+            <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+              <div>
+                <div className="modern-kicker">Intake Timeline</div>
+                <h2 className="mt-5 font-serif text-4xl font-bold text-[#07162f] md:text-5xl">Plan your application around the right intake.</h2>
+                <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
+                  Use these target windows as a starting point. Final deadlines change by country, university, and course.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-5 md:grid-cols-3">
+              {intakeTimeline.map((item) => (
+                <Card key={`${item.intake}-${item.deadline}`} className="rounded-lg border-slate-200 bg-[#f8fbff] shadow-sm">
+                  <CardContent className="p-7">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#d9a31a] text-[#081120]">
+                      <CalendarDays className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-6 font-serif text-2xl font-bold text-[#07162f]">{item.intake}</h3>
+                    <p className="mt-3 font-bold text-[#0e2f6d]">{item.deadline}</p>
+                    <p className="mt-4 leading-7 text-slate-600">{item.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section id="about" className="bg-[#101b31] py-20 text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 md:grid-cols-[0.9fr_1.1fr] md:items-center lg:px-8">
@@ -339,6 +529,30 @@ export default function HomePage() {
                 )}
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {faqs.length > 0 && (
+        <section className="bg-[#f4f7fb] py-24">
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
+            <div>
+              <div className="modern-kicker">FAQ</div>
+              <h2 className="mt-5 font-serif text-4xl font-bold text-[#07162f] md:text-5xl">Common questions before applying.</h2>
+              <p className="mt-5 text-lg leading-8 text-slate-600">
+                These answers help students prepare for the first counseling call with clearer expectations.
+              </p>
+            </div>
+            <div className="space-y-4">
+              {faqs.map((faq) => (
+                <Card key={faq.question} className="rounded-lg border-slate-200 bg-white shadow-sm">
+                  <CardContent className="p-6">
+                    <h3 className="font-serif text-xl font-bold text-[#07162f]">{faq.question}</h3>
+                    <p className="mt-3 leading-7 text-slate-600">{faq.answer}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
       )}

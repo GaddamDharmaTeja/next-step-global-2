@@ -22,6 +22,8 @@ const contentSchema = z.object({
   mentorshipTitle: z.string().min(1),
   mentorshipSubtitle: z.string().min(1),
   services: z.string().min(1),
+  faqs: z.string().min(1),
+  intakeTimeline: z.string().min(1),
   aboutTitle: z.string().min(1),
   aboutText: z.string().min(1),
   aboutHighlights: z.string().min(1),
@@ -42,6 +44,14 @@ function servicesToText(services: SiteContentRecord["services"]) {
   return services.map((service) => `${service.title} | ${service.text}`).join("\n");
 }
 
+function faqsToText(faqs: SiteContentRecord["faqs"]) {
+  return faqs.map((faq) => `${faq.question} | ${faq.answer}`).join("\n");
+}
+
+function intakeTimelineToText(intakes: SiteContentRecord["intakeTimeline"]) {
+  return intakes.map((intake) => `${intake.intake} | ${intake.deadline} | ${intake.description}`).join("\n");
+}
+
 function listToText(items: string[]) {
   return items.join("\n");
 }
@@ -58,6 +68,8 @@ function toPayload(values: ContentForm): SiteContentRecord {
     ...values,
     metrics: parsePipedRows(values.metrics).map(([value = "", label = ""]) => ({ value, label })),
     services: parsePipedRows(values.services).map(([title = "", text = ""]) => ({ title, text })),
+    faqs: parsePipedRows(values.faqs).map(([question = "", answer = ""]) => ({ question, answer })),
+    intakeTimeline: parsePipedRows(values.intakeTimeline).map(([intake = "", deadline = "", description = ""]) => ({ intake, deadline, description })),
     aboutHighlights: values.aboutHighlights.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
   };
 }
@@ -78,6 +90,8 @@ export default function AdminContentPage() {
       mentorshipTitle: "",
       mentorshipSubtitle: "",
       services: "",
+      faqs: "",
+      intakeTimeline: "",
       aboutTitle: "",
       aboutText: "",
       aboutHighlights: "",
@@ -95,6 +109,8 @@ export default function AdminContentPage() {
       ...content,
       metrics: metricsToText(content.metrics),
       services: servicesToText(content.services),
+      faqs: faqsToText(content.faqs || []),
+      intakeTimeline: intakeTimelineToText(content.intakeTimeline || []),
       aboutHighlights: listToText(content.aboutHighlights || []),
     });
   }, [content, form]);
@@ -168,6 +184,22 @@ export default function AdminContentPage() {
                 <FormItem>
                   <FormLabel>Service Cards</FormLabel>
                   <FormControl><Textarea rows={8} placeholder="College & University Admission | College and university admission process can be simplified with guidance." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="intakeTimeline" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intake Timeline</FormLabel>
+                  <FormControl><Textarea rows={5} placeholder={"January 2026 | Apply by August - October 2025 | Best for students with documents ready\nSeptember 2026 | Apply by March - June 2026 | Major intake with maximum options"} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="faqs" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>FAQs</FormLabel>
+                  <FormControl><Textarea rows={7} placeholder="Can I apply without IELTS? | Some universities accept MOI, Duolingo, PTE, or internal English assessment." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />

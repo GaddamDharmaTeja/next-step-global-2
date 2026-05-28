@@ -12,5 +12,12 @@ export interface ProgramUpdate {
   country?: string;
   duration?: string;
   imageUrl?: string;
+  tuitionFee?: string;
+  intakeMonths?: string[];
+  eligibility?: string;
+  englishRequirement?: string;
+  applicationDeadline?: string;
+  scholarshipAvailable?: boolean;
+  careerOutcomes?: string[];
   featured?: boolean;
 }

@@ -21,8 +21,36 @@ const programSchema = z.object({
   country: z.string().min(1, "Country is required"),
   duration: z.string().min(1, "Duration is required"),
   imageUrl: z.string().optional(),
+  tuitionFee: z.string().optional(),
+  intakeMonths: z.string().optional(),
+  eligibility: z.string().optional(),
+  englishRequirement: z.string().optional(),
+  applicationDeadline: z.string().optional(),
+  scholarshipAvailable: z.boolean().default(false),
+  careerOutcomes: z.string().optional(),
   featured: z.boolean().default(false),
 });
+
+function linesToArray(value?: string) {
+  return (value || "").split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean);
+}
+
+function arrayToLines(value?: string[] | null) {
+  return Array.isArray(value) ? value.join("\n") : "";
+}
+
+function toProgramPayload(values: z.infer<typeof programSchema>) {
+  return {
+    ...values,
+    imageUrl: values.imageUrl || undefined,
+    tuitionFee: values.tuitionFee || undefined,
+    intakeMonths: linesToArray(values.intakeMonths),
+    eligibility: values.eligibility || undefined,
+    englishRequirement: values.englishRequirement || undefined,
+    applicationDeadline: values.applicationDeadline || undefined,
+    careerOutcomes: linesToArray(values.careerOutcomes),
+  };
+}
 
 export default function AdminProgramsPage() {
   const { data: programs, isLoading } = useListPrograms();
@@ -36,12 +64,27 @@ export default function AdminProgramsPage() {
 
   const form = useForm<z.infer<typeof programSchema>>({
     resolver: zodResolver(programSchema),
-    defaultValues: { title: "", description: "", country: "", duration: "", imageUrl: "", featured: false },
+    defaultValues: {
+      title: "",
+      description: "",
+      country: "",
+      duration: "",
+      imageUrl: "",
+      tuitionFee: "",
+      intakeMonths: "",
+      eligibility: "",
+      englishRequirement: "",
+      applicationDeadline: "",
+      scholarshipAvailable: false,
+      careerOutcomes: "",
+      featured: false,
+    },
   });
 
   const onSubmit = (values: z.infer<typeof programSchema>) => {
+    const payload = toProgramPayload(values);
     if (editingId) {
-      updateProgram.mutate({ programId: editingId, data: values }, {
+      updateProgram.mutate({ programId: editingId, data: payload }, {
         onSuccess: () => {
           toast({ title: "Program updated" });
           queryClient.invalidateQueries({ queryKey: getListProgramsQueryKey() });
@@ -50,7 +93,7 @@ export default function AdminProgramsPage() {
         }
       });
     } else {
-      createProgram.mutate({ data: values }, {
+      createProgram.mutate({ data: payload }, {
         onSuccess: () => {
           toast({ title: "Program created" });
           queryClient.invalidateQueries({ queryKey: getListProgramsQueryKey() });
@@ -68,6 +111,13 @@ export default function AdminProgramsPage() {
       country: program.country,
       duration: program.duration,
       imageUrl: program.imageUrl || "",
+      tuitionFee: program.tuitionFee || "",
+      intakeMonths: arrayToLines(program.intakeMonths),
+      eligibility: program.eligibility || "",
+      englishRequirement: program.englishRequirement || "",
+      applicationDeadline: program.applicationDeadline || "",
+      scholarshipAvailable: Boolean(program.scholarshipAvailable),
+      careerOutcomes: arrayToLines(program.careerOutcomes),
       featured: program.featured,
     });
     setIsDialogOpen(true);
@@ -75,7 +125,21 @@ export default function AdminProgramsPage() {
 
   const handleAddNew = () => {
     setEditingId(null);
-    form.reset({ title: "", description: "", country: "", duration: "", imageUrl: "", featured: false });
+    form.reset({
+      title: "",
+      description: "",
+      country: "",
+      duration: "",
+      imageUrl: "",
+      tuitionFee: "",
+      intakeMonths: "",
+      eligibility: "",
+      englishRequirement: "",
+      applicationDeadline: "",
+      scholarshipAvailable: false,
+      careerOutcomes: "",
+      featured: false,
+    });
     setIsDialogOpen(true);
   };
 
@@ -103,7 +167,7 @@ export default function AdminProgramsPage() {
             <DialogTrigger asChild>
               <Button onClick={handleAddNew}><Plus className="h-4 w-4 mr-2" /> Add Program</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingId ? "Edit Program" : "Add New Program"}</DialogTitle>
               </DialogHeader>
@@ -128,6 +192,37 @@ export default function AdminProgramsPage() {
                       <FormItem><FormLabel>Image URL (optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="tuitionFee" render={({ field }) => (
+                      <FormItem><FormLabel>Tuition Fee</FormLabel><FormControl><Input {...field} placeholder="e.g. CAD 18,000 - 36,000/year" /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="applicationDeadline" render={({ field }) => (
+                      <FormItem><FormLabel>Application Deadline</FormLabel><FormControl><Input {...field} placeholder="Apply 4-6 months before intake" /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="intakeMonths" render={({ field }) => (
+                      <FormItem><FormLabel>Intake Months</FormLabel><FormControl><Textarea {...field} rows={3} placeholder={"January\nMay\nSeptember"} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="careerOutcomes" render={({ field }) => (
+                      <FormItem><FormLabel>Career Outcomes</FormLabel><FormControl><Textarea {...field} rows={3} placeholder={"Business Analyst\nProject Manager"} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="eligibility" render={({ field }) => (
+                    <FormItem><FormLabel>Eligibility</FormLabel><FormControl><Textarea {...field} rows={3} placeholder="Bachelor degree with required academic percentage..." /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="englishRequirement" render={({ field }) => (
+                    <FormItem><FormLabel>IELTS / PTE Requirement</FormLabel><FormControl><Input {...field} placeholder="IELTS 6.5 overall or equivalent" /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="scholarshipAvailable" render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Scholarship Available</FormLabel>
+                        <div className="text-sm text-muted-foreground">Show scholarship availability on public program cards</div>
+                      </div>
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    </FormItem>
+                  )} />
                   <FormField control={form.control} name="featured" render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
@@ -151,13 +246,15 @@ export default function AdminProgramsPage() {
                 <TableHead>Program</TableHead>
                 <TableHead>Country</TableHead>
                 <TableHead>Duration</TableHead>
+                <TableHead>Intakes</TableHead>
+                <TableHead>Tuition</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {programs?.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center py-8">No programs found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8">No programs found.</TableCell></TableRow>
               )}
               {programs?.map((prog) => (
                 <TableRow key={prog.id}>
@@ -166,6 +263,8 @@ export default function AdminProgramsPage() {
                   </TableCell>
                   <TableCell>{prog.country}</TableCell>
                   <TableCell>{prog.duration}</TableCell>
+                  <TableCell>{prog.intakeMonths?.join(", ") || "-"}</TableCell>
+                  <TableCell>{prog.tuitionFee || "-"}</TableCell>
                   <TableCell>{prog.featured ? "Yes" : "No"}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(prog)}><Pencil className="h-4 w-4" /></Button>

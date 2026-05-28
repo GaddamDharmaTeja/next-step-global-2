@@ -53,6 +53,9 @@ router.post("/mine", requireAuth, async (req, res): Promise<void> => {
         contentType,
         sizeBytes: saved.sizeBytes,
         status: "uploaded" as const,
+        documentType: null,
+        assignedToUserId: null,
+        assignedToName: null,
         note: null,
         uploadedAt: new Date().toISOString(),
       };
@@ -84,6 +87,15 @@ router.patch("/:documentId", requireAdmin, async (req, res): Promise<void> => {
       if (!document) return null;
       if (typeof req.body?.status === "string" && ["uploaded", "reviewing", "approved", "rejected"].includes(req.body.status)) {
         document.status = req.body.status;
+      }
+      if (typeof req.body?.documentType === "string") {
+        document.documentType = req.body.documentType.trim() || null;
+      }
+      if (typeof req.body?.assignedToUserId === "string") {
+        const assignedToUserId = req.body.assignedToUserId.trim();
+        const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && (user.role === "admin" || user.role === "owner"));
+        document.assignedToUserId = assignee?.id ?? null;
+        document.assignedToName = assignee ? assignee.name || assignee.email : null;
       }
       if (typeof req.body?.note === "string") {
         document.note = req.body.note.trim() || null;

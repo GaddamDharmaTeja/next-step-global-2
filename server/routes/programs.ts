@@ -11,6 +11,13 @@ import { requireAdmin } from "../lib/auth";
 
 const router = Router();
 
+function cleanStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((item) => String(item).trim()).filter(Boolean);
+}
+
 router.get("/", async (req, res): Promise<void> => {
   try {
     const store = await readStore();
@@ -36,6 +43,13 @@ router.post("/", requireAdmin, async (req, res): Promise<void> => {
         country: result.data.country,
         duration: result.data.duration,
         imageUrl: result.data.imageUrl ?? null,
+        tuitionFee: result.data.tuitionFee ?? null,
+        intakeMonths: cleanStringArray(result.data.intakeMonths),
+        eligibility: result.data.eligibility ?? null,
+        englishRequirement: result.data.englishRequirement ?? null,
+        applicationDeadline: result.data.applicationDeadline ?? null,
+        scholarshipAvailable: result.data.scholarshipAvailable ?? false,
+        careerOutcomes: cleanStringArray(result.data.careerOutcomes),
         featured: result.data.featured ?? false,
         createdAt: new Date().toISOString(),
       };
@@ -91,6 +105,13 @@ router.patch("/:programId", requireAdmin, async (req, res): Promise<void> => {
       if (body.data.country !== undefined) program.country = body.data.country;
       if (body.data.duration !== undefined) program.duration = body.data.duration;
       if (body.data.imageUrl !== undefined) program.imageUrl = body.data.imageUrl;
+      if (body.data.tuitionFee !== undefined) program.tuitionFee = body.data.tuitionFee || null;
+      if (body.data.intakeMonths !== undefined) program.intakeMonths = cleanStringArray(body.data.intakeMonths);
+      if (body.data.eligibility !== undefined) program.eligibility = body.data.eligibility || null;
+      if (body.data.englishRequirement !== undefined) program.englishRequirement = body.data.englishRequirement || null;
+      if (body.data.applicationDeadline !== undefined) program.applicationDeadline = body.data.applicationDeadline || null;
+      if (body.data.scholarshipAvailable !== undefined) program.scholarshipAvailable = body.data.scholarshipAvailable;
+      if (body.data.careerOutcomes !== undefined) program.careerOutcomes = cleanStringArray(body.data.careerOutcomes);
       if (body.data.featured !== undefined) program.featured = body.data.featured;
       return program;
     });
