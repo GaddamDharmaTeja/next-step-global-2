@@ -11,6 +11,25 @@ import { requireAdmin, requireAuth } from "../lib/auth";
 
 const router = Router();
 
+function calculateLeadScore(input: {
+  subject: string;
+  message: string;
+  phone?: string | null;
+  whatsapp?: string | null;
+  followUpAt?: string | null;
+  leadStage?: LeadStage;
+}): number {
+  const text = `${input.subject} ${input.message}`.toLowerCase();
+  let score = 20;
+  if (input.phone) score += 15;
+  if (input.whatsapp) score += 10;
+  if (/(visa|urgent|asap|september|january|may|intake|scholarship|ielts|pte|budget)/.test(text)) score += 25;
+  if (input.message.length > 120) score += 15;
+  if (input.followUpAt && new Date(input.followUpAt).getTime() <= Date.now() + 1000 * 60 * 60 * 24 * 7) score += 10;
+  if (input.leadStage && ["counseling", "documents", "applied", "visa"].includes(input.leadStage)) score += 15;
+  return Math.min(100, score);
+}
+
 router.get("/", requireAdmin, async (req, res): Promise<void> => {
   try {
     const store = await readStore();
@@ -53,6 +72,7 @@ router.post("/", async (req, res): Promise<void> => {
         assignedToName: null,
         followUpAt: null,
         notes: null,
+        leadScore: calculateLeadScore(result.data),
         createdAt: new Date().toISOString(),
       };
       store.inquiries.push(inquiry);
@@ -112,6 +132,7 @@ router.patch("/:inquiryId/lead", requireAdmin, async (req, res): Promise<void> =
     if (leadStage === "contacted") inquiry.status = "contacted";
     if (leadStage === "converted") inquiry.status = "resolved";
     if (leadStage === "lost") inquiry.status = "resolved";
+    inquiry.leadScore = calculateLeadScore(inquiry);
     store.auditLogs.unshift(
       createAuditLogEntry({
         actorUserId: req.authUser?.id,

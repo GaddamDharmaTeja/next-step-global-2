@@ -49,6 +49,7 @@ export interface InquiryRecord {
   assignedToName: string | null;
   followUpAt: string | null;
   notes: string | null;
+  leadScore?: number;
   createdAt: string;
 }
 
@@ -980,6 +981,10 @@ function normalizeStore(store: AppStore): boolean {
       inquiry.assignedToName = null;
       changed = true;
     }
+    if (inquiry.leadScore === undefined) {
+      inquiry.leadScore = calculateLeadScore(inquiry);
+      changed = true;
+    }
   }
 
   for (const program of store.programs) {
@@ -1061,6 +1066,25 @@ function normalizeStore(store: AppStore): boolean {
   }
 
   return changed;
+}
+
+function calculateLeadScore(input: {
+  subject: string;
+  message: string;
+  phone?: string | null;
+  whatsapp?: string | null;
+  followUpAt?: string | null;
+  leadStage?: LeadStage;
+}): number {
+  const text = `${input.subject} ${input.message}`.toLowerCase();
+  let score = 20;
+  if (input.phone) score += 15;
+  if (input.whatsapp) score += 10;
+  if (/(visa|urgent|asap|september|january|may|intake|scholarship|ielts|pte|budget)/.test(text)) score += 25;
+  if (input.message.length > 120) score += 15;
+  if (input.followUpAt && new Date(input.followUpAt).getTime() <= Date.now() + 1000 * 60 * 60 * 24 * 7) score += 10;
+  if (input.leadStage && ["counseling", "documents", "applied", "visa"].includes(input.leadStage)) score += 15;
+  return Math.min(100, score);
 }
 
 async function readLocalStoreOrSeed(): Promise<AppStore> {

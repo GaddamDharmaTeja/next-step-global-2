@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Globe2,
   GraduationCap,
+  ListChecks,
   Mail,
   Phone,
   Sparkles,
@@ -33,6 +34,29 @@ function getStatusClasses(status: "pending" | "contacted" | "resolved") {
   }
 
   return "bg-sky-500/10 text-sky-700 ring-1 ring-sky-200";
+}
+
+const applicationSteps = [
+  { key: "profile", label: "Profile review", stages: ["new", "contacted"] },
+  { key: "counseling", label: "Counseling", stages: ["counseling"] },
+  { key: "documents", label: "Documents", stages: ["documents"] },
+  { key: "applied", label: "Applications", stages: ["applied"] },
+  { key: "visa", label: "Visa", stages: ["visa"] },
+  { key: "departure", label: "Departure ready", stages: ["converted"] },
+];
+
+function activeStage(inquiries: Awaited<ReturnType<typeof listMyInquiries>>) {
+  const latest = [...inquiries].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  return latest?.leadStage || (latest?.status === "resolved" ? "converted" : latest?.status === "contacted" ? "contacted" : "new");
+}
+
+function checklistFor(inquiries: Awaited<ReturnType<typeof listMyInquiries>>) {
+  const text = inquiries.map((entry) => `${entry.subject} ${entry.message}`).join(" ").toLowerCase();
+  if (text.includes("canada")) return ["Passport", "Academic transcripts", "IELTS/PTE score", "GIC or financial proof", "Statement of purpose"];
+  if (text.includes("uk") || text.includes("united kingdom")) return ["Passport", "CAS documents", "Academic transcripts", "Financial evidence", "TB test if applicable"];
+  if (text.includes("australia")) return ["Passport", "Academic transcripts", "Genuine student documents", "OSHC", "Financial evidence"];
+  if (text.includes("usa") || text.includes("united states")) return ["Passport", "I-20 documents", "Academic transcripts", "SEVIS fee", "Financial sponsor proof"];
+  return ["Passport", "Academic transcripts", "English test score", "Statement of purpose", "Financial documents"];
 }
 
 export default function UserPortalPage() {
@@ -76,6 +100,8 @@ export default function UserPortalPage() {
   const documentList = Array.isArray(documents) ? documents : [];
   const firstName = profile.name?.trim().split(/\s+/)[0] || "Student";
   const pendingCount = myInquiries.filter((entry) => entry.status === "pending").length;
+  const currentStage = activeStage(myInquiries);
+  const documentChecklist = checklistFor(myInquiries);
   const visibleSections = contentAccess?.userPortal || ["hero", "profile", "inquiries", "programs", "documents"];
   const canSee = (section: string) => visibleSections.includes(section);
 
@@ -241,6 +267,47 @@ export default function UserPortalPage() {
           )}
 
           <div className="space-y-6">
+            {canSee("inquiries") && (
+              <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="flex items-center justify-between border-b border-slate-200/80 p-6">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#a77400]">Application Timeline</div>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Your NextStep Roadmap</h2>
+                  </div>
+                  <ListChecks className="h-7 w-7 text-[#0e2f6d]" />
+                </div>
+                <CardContent className="grid gap-3 p-6 md:grid-cols-6">
+                  {applicationSteps.map((step, index) => {
+                    const isActive = step.stages.includes(currentStage);
+                    const isDone = applicationSteps.findIndex((item) => item.stages.includes(currentStage)) > index;
+                    return (
+                      <div key={step.key} className={`rounded-2xl border p-4 ${isActive ? "border-[#d9a31a] bg-amber-50" : isDone ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white"}`}>
+                        <div className="text-xs font-bold text-slate-500">0{index + 1}</div>
+                        <div className="mt-2 text-sm font-semibold text-slate-900">{step.label}</div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {canSee("documents") && (
+              <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="border-b border-slate-200/80 p-6">
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Country Checklist</div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Suggested Documents</h2>
+                  <p className="mt-2 text-sm text-slate-600">This checklist adapts from your inquiry destination when possible.</p>
+                </div>
+                <CardContent className="grid gap-3 p-6 sm:grid-cols-2">
+                  {documentChecklist.map((item) => (
+                    <div key={item} className="rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-800">
+                      {item}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             {canSee("inquiries") && (
             <Card
               id="inquiries"

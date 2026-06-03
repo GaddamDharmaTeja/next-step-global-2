@@ -6,7 +6,7 @@ import {
   useListUsers,
   useUpdateUserRole,
 } from "@workspace/api-client-react";
-import { Crown, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
+import { Crown, Network, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { createAdminInvite, getRoleMenuAccess, listAdminInvites, updateRoleMenuAccess } from "@/lib/api";
+import {
+  createAdminInvite,
+  createUserPosition,
+  getRoleMenuAccess,
+  listAdminInvites,
+  listUserPositions,
+  updateRoleMenuAccess,
+  updateUserProfile,
+} from "@/lib/api";
 
 const manageableMenus = [
   { id: "dashboard", label: "Dashboard" },
@@ -79,6 +87,11 @@ export default function AdminRolesPage() {
     queryFn: getRoleMenuAccess,
     enabled: profile?.role === "owner",
   });
+  const { data: positions = [] } = useQuery({
+    queryKey: ["/api/user-positions"],
+    queryFn: listUserPositions,
+    enabled: profile?.role === "owner",
+  });
   const updateUserRole = useUpdateUserRole();
   const queryClient = useQueryClient();
   const auxClient = useClient();
@@ -86,12 +99,16 @@ export default function AdminRolesPage() {
   const canManageRoles = profile?.role === "owner";
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "owner">("admin");
+  const [positionName, setPositionName] = useState("");
+  const [positionLevel, setPositionLevel] = useState("3");
+  const [positionDescription, setPositionDescription] = useState("");
   const selectedAdminMenus = menuAccess?.admin || [];
   const selectedUserPortalSections = menuAccess?.userPortal || [];
   const safeUsers = users ?? [];
   const ownerCount = safeUsers.filter((user) => user.role === "owner").length;
   const adminCount = safeUsers.filter((user) => user.role === "admin").length;
   const memberCount = safeUsers.filter((user) => user.role === "user").length;
+  const assignableUsers = safeUsers.filter((user) => user.role === "user");
 
   const handleRoleChange = (userId: string, role: string) => {
     if (!canManageRoles) {
@@ -122,6 +139,39 @@ export default function AdminRolesPage() {
     } catch (error) {
       toast({
         title: error instanceof Error ? error.message : "Failed to create invite",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreatePosition = async () => {
+    try {
+      await createUserPosition({
+        name: positionName,
+        level: Number(positionLevel) || 3,
+        description: positionDescription || null,
+      });
+      setPositionName("");
+      setPositionLevel("3");
+      setPositionDescription("");
+      await auxClient.invalidateQueries({ queryKey: ["/api/user-positions"] });
+      toast({ title: "User type created" });
+    } catch (error) {
+      toast({
+        title: error instanceof Error ? error.message : "Failed to create user type",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePositionAssign = async (userId: string, positionId: string) => {
+    try {
+      await updateUserProfile(userId, { positionId: positionId === "none" ? "" : positionId });
+      await queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+      toast({ title: "User type assigned" });
+    } catch (error) {
+      toast({
+        title: error instanceof Error ? error.message : "Failed to assign user type",
         variant: "destructive",
       });
     }
@@ -296,6 +346,54 @@ export default function AdminRolesPage() {
                     <Checkbox checked={selectedUserPortalSections.includes(section.id)} onCheckedChange={(checked) => handleUserPortalToggle(section.id, checked === true)} />
                     {section.label}
                   </label>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {canManageRoles && (
+          <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+            <Card className="rounded-[1.75rem] border-white/70 bg-white/85 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+              <CardHeader className="border-b border-slate-200/70 pb-5">
+                <CardTitle className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-slate-900">
+                  <Network className="h-5 w-5" /> Create User Type / Position
+                </CardTitle>
+                <p className="mt-2 text-sm text-slate-600">Owner-created positions can be assigned only to normal users, never admins or owners.</p>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                <Input value={positionName} onChange={(event) => setPositionName(event.target.value)} placeholder="Position name, e.g. Junior Counselor" className="h-12 rounded-xl" />
+                <Input value={positionLevel} onChange={(event) => setPositionLevel(event.target.value)} type="number" min="1" placeholder="Level" className="h-12 rounded-xl" />
+                <Input value={positionDescription} onChange={(event) => setPositionDescription(event.target.value)} placeholder="Short description" className="h-12 rounded-xl" />
+                <Button onClick={handleCreatePosition} className="h-12 w-full rounded-xl bg-[#101b31] font-semibold text-white hover:bg-[#172846]">
+                  Create User Type
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-[1.75rem] border-white/70 bg-white/85 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+              <CardHeader className="border-b border-slate-200/70 pb-5">
+                <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">Assign User Types</CardTitle>
+                <p className="mt-2 text-sm text-slate-600">Only regular users are listed here. Admin and owner accounts are intentionally excluded.</p>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-6">
+                {assignableUsers.length === 0 && <div className="rounded-xl border border-dashed p-5 text-sm text-slate-500">No normal users available for assignment.</div>}
+                {assignableUsers.map((user) => (
+                  <div key={user.id} className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-[1fr_220px] md:items-center">
+                    <div>
+                      <div className="font-medium text-slate-900">{user.name || "Unnamed user"}</div>
+                      <div className="text-sm text-slate-500">{user.email}</div>
+                    </div>
+                    <Select value={(user as any).positionId || "none"} onValueChange={(value) => handlePositionAssign(user.id, value)}>
+                      <SelectTrigger className="rounded-xl"><SelectValue placeholder="User type" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No user type</SelectItem>
+                        {positions.map((position) => (
+                          <SelectItem key={position.id} value={position.id}>{position.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 ))}
               </CardContent>
             </Card>

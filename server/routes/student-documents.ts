@@ -93,7 +93,7 @@ router.patch("/:documentId", requireAdmin, async (req, res): Promise<void> => {
       }
       if (typeof req.body?.assignedToUserId === "string") {
         const assignedToUserId = req.body.assignedToUserId.trim();
-        const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && (user.role === "admin" || user.role === "owner"));
+        const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && user.role === "user");
         document.assignedToUserId = assignee?.id ?? null;
         document.assignedToName = assignee ? assignee.name || assignee.email : null;
       }

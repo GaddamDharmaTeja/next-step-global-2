@@ -82,7 +82,7 @@ export default function AdminAppointmentsPage() {
   }, [appointments]);
 
   const assignees = useMemo(() => {
-    return users.filter((user) => user.role === "admin" || user.role === "owner");
+    return users.filter((user) => user.role === "user");
   }, [users]);
 
   const filteredAppointments = useMemo(() => {
@@ -175,7 +175,7 @@ export default function AdminAppointmentsPage() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Appointments</h2>
-          <p className="text-muted-foreground">Review consultation requests, contact students, and update scheduling status.</p>
+          <p className="text-muted-foreground">Review consultation requests, contact students, and assign appointments to normal users only.</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">

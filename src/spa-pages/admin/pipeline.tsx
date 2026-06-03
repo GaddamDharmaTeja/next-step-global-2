@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { listInquiriesManual, updateInquiryLead, type InquiryRecord } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Mail, Phone } from "lucide-react";
+import { CalendarClock, Flame, Mail, Phone } from "lucide-react";
 import { useState } from "react";
 
 const stages: Array<{ value: NonNullable<InquiryRecord["leadStage"]>; label: string }> = [
@@ -33,6 +33,7 @@ export default function AdminPipelinePage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [savingId, setSavingId] = useState<number | null>(null);
+  const assignableUsers = users.filter((user) => user.role === "user");
 
   const moveLead = async (inquiry: InquiryRecord, leadStage: NonNullable<InquiryRecord["leadStage"]>) => {
     setSavingId(inquiry.id);
@@ -95,7 +96,24 @@ export default function AdminPipelinePage() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Lead Pipeline</h2>
-          <p className="text-muted-foreground">Move inquiries through counseling, application, visa, and conversion stages.</p>
+          <p className="text-muted-foreground">Move inquiries through counseling, application, visa, and conversion stages. Leads can be assigned to normal users only.</p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="modern-admin-panel p-5">
+            <div className="text-sm font-semibold text-muted-foreground">Hot Leads</div>
+            <div className="mt-2 text-3xl font-bold">{inquiries.filter((inquiry) => (inquiry.leadScore || 0) >= 70).length}</div>
+          </div>
+          <div className="modern-admin-panel p-5">
+            <div className="text-sm font-semibold text-muted-foreground">Due Follow-Ups</div>
+            <div className="mt-2 text-3xl font-bold">
+              {inquiries.filter((inquiry) => inquiry.followUpAt && new Date(inquiry.followUpAt).getTime() <= Date.now()).length}
+            </div>
+          </div>
+          <div className="modern-admin-panel p-5">
+            <div className="text-sm font-semibold text-muted-foreground">Assigned Students</div>
+            <div className="mt-2 text-3xl font-bold">{inquiries.filter((inquiry) => inquiry.assignedToUserId).length}</div>
+          </div>
         </div>
 
         <div className="grid gap-4 overflow-x-auto pb-4 xl:grid-cols-4 2xl:grid-cols-8">
@@ -117,7 +135,12 @@ export default function AdminPipelinePage() {
                   {stageInquiries.map((inquiry) => (
                     <div key={inquiry.id} className="rounded-lg border border-slate-200/80 bg-slate-50/90 p-4 shadow-sm">
                       <div className="font-semibold">{inquiry.name}</div>
-                      <div className="mt-1 text-sm text-slate-700">{inquiry.subject}</div>
+                      <div className="mt-1 flex items-center justify-between gap-3 text-sm text-slate-700">
+                        <span>{inquiry.subject}</span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">
+                          <Flame className="h-3 w-3" /> {inquiry.leadScore || 0}
+                        </span>
+                      </div>
                       <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                         <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> {inquiry.email}</div>
                         {inquiry.phone && <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> {inquiry.phone}</div>}
@@ -157,7 +180,7 @@ export default function AdminPipelinePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="unassigned">Unassigned</SelectItem>
-                          {users.filter((user) => user.role !== "user").map((user) => (
+                          {assignableUsers.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.name || user.email}
                             </SelectItem>

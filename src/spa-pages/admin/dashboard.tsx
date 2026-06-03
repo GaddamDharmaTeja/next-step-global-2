@@ -1,5 +1,6 @@
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { useGetAdminStats } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowUpRight,
@@ -11,6 +12,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import { listAppointments, listInquiriesManual } from "@/lib/api";
 
 const statCards = [
   {
@@ -45,6 +47,8 @@ const statCards = [
 
 export default function AdminDashboardPage() {
   const { data: stats, isLoading } = useGetAdminStats();
+  const { data: inquiries = [] } = useQuery({ queryKey: ["/api/inquiries"], queryFn: listInquiriesManual });
+  const { data: appointments = [] } = useQuery({ queryKey: ["/api/appointments"], queryFn: listAppointments });
 
   if (isLoading) {
     return (
@@ -225,6 +229,55 @@ export default function AdminDashboardPage() {
               <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#0e2f6d]">
                 Open the relevant section from the sidebar
                 <ArrowUpRight className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+          <Card className="rounded-[1.75rem] border-white/70 bg-white/85 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+            <CardHeader className="border-b border-slate-200/70 pb-5">
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">Pipeline Analytics</CardTitle>
+              <p className="mt-2 text-sm text-slate-600">A quick visual split of demand by student journey stage.</p>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-6">
+              {["new", "contacted", "counseling", "documents", "applied", "visa", "converted", "lost"].map((stage) => {
+                const count = inquiries.filter((inquiry) => (inquiry.leadStage || "new") === stage).length;
+                const percent = inquiries.length ? Math.max(8, Math.round((count / inquiries.length) * 100)) : 0;
+                return (
+                  <div key={stage}>
+                    <div className="mb-2 flex justify-between text-sm">
+                      <span className="font-medium capitalize text-slate-700">{stage}</span>
+                      <span className="font-semibold text-slate-900">{count}</span>
+                    </div>
+                    <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-[linear-gradient(90deg,#0e2f6d,#d9a31a)]" style={{ width: `${percent}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[1.75rem] border-white/70 bg-white/85 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+            <CardHeader className="border-b border-slate-200/70 pb-5">
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">Smart Signals</CardTitle>
+              <p className="mt-2 text-sm text-slate-600">Lead scoring and reminders help decide what to work first.</p>
+            </CardHeader>
+            <CardContent className="grid gap-4 pt-6">
+              <div className="rounded-[1.35rem] border border-amber-200 bg-amber-50 p-4">
+                <div className="text-sm font-semibold text-amber-800">Hot leads</div>
+                <div className="mt-2 text-3xl font-bold text-amber-950">{inquiries.filter((inquiry) => (inquiry.leadScore || 0) >= 70).length}</div>
+              </div>
+              <div className="rounded-[1.35rem] border border-rose-200 bg-rose-50 p-4">
+                <div className="text-sm font-semibold text-rose-800">Overdue follow-ups</div>
+                <div className="mt-2 text-3xl font-bold text-rose-950">
+                  {inquiries.filter((inquiry) => inquiry.followUpAt && new Date(inquiry.followUpAt).getTime() <= Date.now()).length}
+                </div>
+              </div>
+              <div className="rounded-[1.35rem] border border-sky-200 bg-sky-50 p-4">
+                <div className="text-sm font-semibold text-sky-800">Scheduled appointments</div>
+                <div className="mt-2 text-3xl font-bold text-sky-950">{appointments.filter((appointment) => appointment.status === "scheduled").length}</div>
               </div>
             </CardContent>
           </Card>

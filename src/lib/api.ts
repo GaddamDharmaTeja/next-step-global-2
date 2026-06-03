@@ -124,6 +124,7 @@ export interface InquiryRecord {
   assignedToName?: string | null;
   followUpAt?: string | null;
   notes?: string | null;
+  leadScore?: number;
   createdAt: string;
 }
 

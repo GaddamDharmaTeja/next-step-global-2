@@ -2,6 +2,7 @@ import http from "node:http";
 import next from "next";
 import nextEnv from "@next/env";
 import app from "./server/app";
+import { startViewRequestScheduler } from "./server/lib/view-request-scheduler";
 
 const { loadEnvConfig } = nextEnv;
 
@@ -25,4 +26,5 @@ app.all(/.*/, (req, res) => handle(req, res));
 
 http.createServer(app).listen(port, host, () => {
   console.log(`NextStep app listening on http://${host}:${port}`);
+  startViewRequestScheduler();
 });

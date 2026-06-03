@@ -66,7 +66,7 @@ router.patch("/:appointmentId", requireAdmin, async (req, res): Promise<void> =>
     if (status) appointment.status = status as AppointmentStatus;
     if (destination !== undefined) appointment.destination = destination || null;
     if (assignedToUserId !== undefined) {
-      const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && (user.role === "admin" || user.role === "owner"));
+      const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && user.role === "user");
       appointment.assignedToUserId = assignee?.id ?? null;
       appointment.assignedToName = assignee ? assignee.name || assignee.email : null;
     }
