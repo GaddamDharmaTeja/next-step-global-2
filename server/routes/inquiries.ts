@@ -6,7 +6,7 @@ import {
   UpdateInquiryBody,
   UpdateInquiryParams,
 } from "@workspace/api-zod";
-import { createAuditLogEntry, nextNumericId, readStore, updateStore, type LeadStage } from "../lib/store";
+import { calculateVisaReadinessScore, createAuditLogEntry, nextNumericId, readStore, updateStore, type LeadStage, type ProgramLevel } from "../lib/store";
 import { requireAdmin, requireAuth } from "../lib/auth";
 
 const router = Router();
@@ -26,8 +26,17 @@ function calculateLeadScore(input: {
   if (/(visa|urgent|asap|september|january|may|intake|scholarship|ielts|pte|budget)/.test(text)) score += 25;
   if (input.message.length > 120) score += 15;
   if (input.followUpAt && new Date(input.followUpAt).getTime() <= Date.now() + 1000 * 60 * 60 * 24 * 7) score += 10;
-  if (input.leadStage && ["counseling", "documents", "applied", "visa"].includes(input.leadStage)) score += 15;
+  if (input.leadStage && ["counseling", "documents", "applied", "offer", "visa"].includes(input.leadStage)) score += 15;
   return Math.min(100, score);
+}
+
+function inferProgramLevel(text: string): ProgramLevel | null {
+  const normalized = text.toLowerCase();
+  if (/(phd|doctorate|research)/.test(normalized)) return "research";
+  if (/(masters|master|mba|msc|ms|postgraduate)/.test(normalized)) return "postgraduate";
+  if (/(bachelor|undergraduate|bsc|ba|bba)/.test(normalized)) return "undergraduate";
+  if (/(diploma|certificate)/.test(normalized)) return "diploma";
+  return null;
 }
 
 router.get("/", requireAdmin, async (req, res): Promise<void> => {
@@ -73,6 +82,13 @@ router.post("/", async (req, res): Promise<void> => {
         followUpAt: null,
         notes: null,
         leadScore: calculateLeadScore(result.data),
+        destination: store.destinations.find((destination) =>
+          `${result.data.subject} ${result.data.message}`.toLowerCase().includes(destination.name.toLowerCase()),
+        )?.name || null,
+        programLevel: inferProgramLevel(`${result.data.subject} ${result.data.message}`),
+        intake: null,
+        lastContactedAt: null,
+        visaReadinessScore: 10,
         createdAt: new Date().toISOString(),
       };
       store.inquiries.push(inquiry);
@@ -107,11 +123,14 @@ router.get("/:inquiryId", async (req, res): Promise<void> => {
 
 router.patch("/:inquiryId/lead", requireAdmin, async (req, res): Promise<void> => {
   const inquiryId = Number(req.params.inquiryId);
-  const leadStages = new Set<LeadStage>(["new", "contacted", "counseling", "documents", "applied", "visa", "converted", "lost"]);
+  const leadStages = new Set<LeadStage>(["new", "contacted", "counseling", "documents", "applied", "offer", "visa", "enrolled", "lost"]);
   const leadStage = typeof req.body?.leadStage === "string" ? req.body.leadStage : "";
   const notes = typeof req.body?.notes === "string" ? req.body.notes : undefined;
   const followUpAt = typeof req.body?.followUpAt === "string" && req.body.followUpAt.trim() ? req.body.followUpAt.trim() : null;
   const assignedToUserId = typeof req.body?.assignedToUserId === "string" && req.body.assignedToUserId.trim() ? req.body.assignedToUserId.trim() : null;
+  const destination = typeof req.body?.destination === "string" ? req.body.destination.trim() : undefined;
+  const programLevel = typeof req.body?.programLevel === "string" ? req.body.programLevel.trim() : undefined;
+  const intake = typeof req.body?.intake === "string" ? req.body.intake.trim() : undefined;
 
   if (Number.isNaN(inquiryId) || !leadStages.has(leadStage as LeadStage)) {
     res.status(400).json({ error: "Invalid inquiry or lead stage" });
@@ -124,15 +143,20 @@ router.patch("/:inquiryId/lead", requireAdmin, async (req, res): Promise<void> =
     inquiry.leadStage = leadStage as LeadStage;
     inquiry.followUpAt = followUpAt;
     if (notes !== undefined) inquiry.notes = notes || null;
+    if (destination !== undefined) inquiry.destination = destination || null;
+    if (programLevel !== undefined) inquiry.programLevel = (programLevel || null) as ProgramLevel | null;
+    if (intake !== undefined) inquiry.intake = intake || null;
     if (assignedToUserId !== undefined) {
-      const assignee = assignedToUserId ? store.users.find((entry) => entry.id === assignedToUserId) : null;
+      const assignee = assignedToUserId ? store.users.find((entry) => entry.id === assignedToUserId && (entry.role === "admin" || entry.role === "owner")) : null;
       inquiry.assignedToUserId = assignee?.id || null;
       inquiry.assignedToName = assignee?.name || assignee?.email || null;
     }
     if (leadStage === "contacted") inquiry.status = "contacted";
-    if (leadStage === "converted") inquiry.status = "resolved";
+    if (leadStage === "contacted") inquiry.lastContactedAt = new Date().toISOString();
+    if (leadStage === "enrolled") inquiry.status = "resolved";
     if (leadStage === "lost") inquiry.status = "resolved";
     inquiry.leadScore = calculateLeadScore(inquiry);
+    inquiry.visaReadinessScore = calculateVisaReadinessScore(inquiry, store.studentDocuments);
     store.auditLogs.unshift(
       createAuditLogEntry({
         actorUserId: req.authUser?.id,

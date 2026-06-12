@@ -75,10 +75,88 @@ export interface StudentDocumentRecord {
   sizeBytes: number;
   status: "uploaded" | "reviewing" | "approved" | "rejected";
   documentType?: string | null;
+  checklistItemId?: string | null;
   assignedToUserId?: string | null;
   assignedToName?: string | null;
   note?: string | null;
   uploadedAt: string;
+}
+
+export type ProgramLevel = "undergraduate" | "postgraduate" | "research" | "diploma" | "any";
+
+export interface ScholarshipRecord {
+  id: number;
+  name: string;
+  country: string;
+  programLevel: ProgramLevel;
+  eligibility: string;
+  awardValue: string;
+  deadline: string;
+  intake?: string | null;
+  applicationLink?: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface DocumentChecklistTemplateRecord {
+  id: number;
+  destination: string;
+  programLevel: ProgramLevel;
+  title: string;
+  items: Array<{ id: string; label: string; required: boolean }>;
+  createdAt: string;
+}
+
+export interface MessageRecord {
+  id: string;
+  inquiryId?: number | null;
+  studentEmail: string;
+  studentUserId?: string | null;
+  senderUserId?: string | null;
+  senderName: string;
+  senderRole: "user" | "admin" | "owner" | "system";
+  body: string;
+  createdAt: string;
+}
+
+export interface ChatUserRecord {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: "user" | "admin" | "owner";
+  createdAt: string;
+}
+
+export interface ChatMessageRecord {
+  id: string;
+  conversationId: string;
+  senderUserId?: string | null;
+  senderName: string;
+  senderRole: "user" | "admin" | "owner" | "system";
+  body: string;
+  createdAt: string;
+}
+
+export interface ChatConversationRecord {
+  id: string;
+  type: "direct" | "group";
+  title: string;
+  createdByUserId?: string | null;
+  createdByName: string;
+  memberUserIds: string[];
+  members: ChatUserRecord[];
+  messages: ChatMessageRecord[];
+  lastMessage?: ChatMessageRecord | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReminderRecord {
+  id: string;
+  type: "follow_up" | "stale_lead";
+  priority: "high" | "medium";
+  inquiry: InquiryRecord;
+  message: string;
 }
 
 export interface UserPositionRecord {
@@ -119,12 +197,17 @@ export interface InquiryRecord {
   subject: string;
   message: string;
   status: "pending" | "contacted" | "resolved";
-  leadStage?: "new" | "contacted" | "counseling" | "documents" | "applied" | "visa" | "converted" | "lost";
+  leadStage?: "new" | "contacted" | "counseling" | "documents" | "applied" | "offer" | "visa" | "enrolled" | "lost";
   assignedToUserId?: string | null;
   assignedToName?: string | null;
   followUpAt?: string | null;
   notes?: string | null;
   leadScore?: number;
+  destination?: string | null;
+  programLevel?: ProgramLevel | null;
+  intake?: string | null;
+  lastContactedAt?: string | null;
+  visaReadinessScore?: number;
   createdAt: string;
 }
 
@@ -160,6 +243,9 @@ export interface AppointmentRecord {
   email: string;
   phone: string;
   destination?: string | null;
+  consultantId?: number | null;
+  consultantName?: string | null;
+  meetingType?: "phone" | "video" | "office";
   assignedToUserId?: string | null;
   assignedToName?: string | null;
   preferredDate: string;
@@ -174,6 +260,8 @@ export interface AppointmentPayload {
   email: string;
   phone: string;
   destination?: string;
+  consultantId?: number | null;
+  meetingType?: "phone" | "video" | "office";
   preferredDate: string;
   preferredTime: string;
   notes?: string;
@@ -228,6 +316,8 @@ export interface UploadGalleryPayload {
 
 export interface UploadStudentDocumentPayload {
   file: File;
+  documentType?: string | null;
+  checklistItemId?: string | null;
 }
 
 const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
@@ -242,6 +332,23 @@ function asStringArray(value: unknown): string[] {
   }
 
   return value.map((item) => String(item).trim()).filter(Boolean);
+}
+
+function asRecordArray<T>(value: unknown, keys: string[] = []): T[] {
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    for (const key of ["data", "items", "results", ...keys]) {
+      if (Array.isArray(record[key])) {
+        return record[key] as T[];
+      }
+    }
+  }
+
+  return [];
 }
 
 function normalizeDestinationRecord(record: DestinationRecord): DestinationRecord {
@@ -365,6 +472,13 @@ export async function signOut() {
   }
 }
 
+export async function resetPassword(payload: { email: string; password: string }) {
+  return request<{ ok: true }>("/api/users/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -395,6 +509,14 @@ export async function uploadGalleryImage(payload: UploadGalleryPayload) {
   });
 }
 
+export async function uploadImageFile(file: File, options?: { caption?: string; category?: string }) {
+  return uploadGalleryImage({
+    file,
+    caption: options?.caption,
+    category: options?.category || "asset",
+  });
+}
+
 export async function uploadStudentDocument(payload: UploadStudentDocumentPayload) {
   const dataUrl = await readFileAsDataUrl(payload.file);
   const [, base64Data = ""] = dataUrl.split(",", 2);
@@ -405,6 +527,8 @@ export async function uploadStudentDocument(payload: UploadStudentDocumentPayloa
       filename: payload.file.name,
       contentType: payload.file.type,
       base64Data,
+      documentType: payload.documentType || null,
+      checklistItemId: payload.checklistItemId || null,
     }),
   });
 }
@@ -417,9 +541,10 @@ export async function listMyInquiries() {
 }
 
 export async function listInquiriesManual() {
-  return request<InquiryRecord[]>("/api/inquiries", {
+  const data = await request<unknown>("/api/inquiries", {
     method: "GET",
   });
+  return asRecordArray<InquiryRecord>(data, ["inquiries"]);
 }
 
 export async function updateInquiryLead(
@@ -429,12 +554,112 @@ export async function updateInquiryLead(
     notes?: string | null;
     followUpAt?: string | null;
     assignedToUserId?: string | null;
+    destination?: string | null;
+    programLevel?: ProgramLevel | null;
+    intake?: string | null;
   },
 ) {
   return request<InquiryRecord>(`/api/inquiries/${inquiryId}/lead`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+}
+
+export async function listScholarships(params?: { country?: string; level?: string; q?: string }) {
+  const search = new URLSearchParams();
+  if (params?.country) search.set("country", params.country);
+  if (params?.level) search.set("level", params.level);
+  if (params?.q) search.set("q", params.q);
+  const suffix = search.toString() ? `?${search.toString()}` : "";
+  const data = await request<unknown>(`/api/scholarships${suffix}`, { method: "GET" });
+  return asRecordArray<ScholarshipRecord>(data, ["scholarships"]);
+}
+
+export async function createScholarship(payload: Omit<ScholarshipRecord, "id" | "createdAt">) {
+  return request<ScholarshipRecord>("/api/scholarships", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function updateScholarship(id: number, payload: Partial<Omit<ScholarshipRecord, "id" | "createdAt">>) {
+  return request<ScholarshipRecord>(`/api/scholarships/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export async function deleteScholarship(id: number) {
+  const response = await fetch(apiUrl(`/api/scholarships/${id}`), { method: "DELETE", credentials: "include" });
+  if (!response.ok && response.status !== 204) throw new Error("Failed to delete scholarship");
+}
+
+export async function listDocumentChecklists(params?: { destination?: string; level?: string }) {
+  const search = new URLSearchParams();
+  if (params?.destination) search.set("destination", params.destination);
+  if (params?.level) search.set("level", params.level);
+  const suffix = search.toString() ? `?${search.toString()}` : "";
+  const data = await request<unknown>(`/api/document-checklists${suffix}`, { method: "GET" });
+  return asRecordArray<DocumentChecklistTemplateRecord>(data, ["documentChecklists", "documentChecklistTemplates"]);
+}
+
+export async function createDocumentChecklist(payload: Omit<DocumentChecklistTemplateRecord, "id" | "createdAt">) {
+  return request<DocumentChecklistTemplateRecord>("/api/document-checklists", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function updateDocumentChecklist(id: number, payload: Partial<Omit<DocumentChecklistTemplateRecord, "id" | "createdAt">>) {
+  return request<DocumentChecklistTemplateRecord>(`/api/document-checklists/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export async function deleteDocumentChecklist(id: number) {
+  const response = await fetch(apiUrl(`/api/document-checklists/${id}`), { method: "DELETE", credentials: "include" });
+  if (!response.ok && response.status !== 204) throw new Error("Failed to delete checklist");
+}
+
+export async function listMyMessages() {
+  const data = await request<unknown>("/api/messages/mine", { method: "GET" });
+  return asRecordArray<MessageRecord>(data, ["messages"]);
+}
+
+export async function createMyMessage(payload: { inquiryId?: number | null; body: string }) {
+  return request<MessageRecord>("/api/messages/mine", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function listMessages() {
+  const data = await request<unknown>("/api/messages", { method: "GET" });
+  return asRecordArray<MessageRecord>(data, ["messages"]);
+}
+
+export async function createMessage(payload: { studentEmail: string; inquiryId?: number | null; body: string }) {
+  return request<MessageRecord>("/api/messages", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function listChatUsers() {
+  const data = await request<unknown>("/api/chat/users", { method: "GET" });
+  return asRecordArray<ChatUserRecord>(data, ["users"]);
+}
+
+export async function listChatConversations() {
+  const data = await request<unknown>("/api/chat/conversations", { method: "GET" });
+  return asRecordArray<ChatConversationRecord>(data, ["conversations"]);
+}
+
+export async function createChatConversation(payload: { type: "direct" | "group"; title?: string; memberUserIds: string[] }) {
+  return request<ChatConversationRecord>("/api/chat/conversations", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function sendChatMessage(conversationId: string, body: string) {
+  return request<ChatMessageRecord>(`/api/chat/conversations/${conversationId}/messages`, { method: "POST", body: JSON.stringify({ body }) });
+}
+
+export async function deleteChatConversation(conversationId: string) {
+  const response = await fetch(apiUrl(`/api/chat/conversations/${conversationId}`), { method: "DELETE", credentials: "include" });
+  if (!response.ok && response.status !== 204) {
+    const payload = await parseResponse(response);
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "Failed to delete chat";
+    throw new Error(message);
+  }
+}
+
+export async function listReminders() {
+  return request<ReminderRecord[]>("/api/reminders", { method: "GET" });
 }
 
 export async function listOwnerSettings() {

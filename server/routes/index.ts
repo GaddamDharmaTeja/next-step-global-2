@@ -18,6 +18,11 @@ import notificationTemplatesRouter from "./notification-templates";
 import studentDocumentsRouter from "./student-documents";
 import roleMenuAccessRouter from "./role-menu-access";
 import userPositionsRouter from "./user-positions";
+import scholarshipsRouter from "./scholarships";
+import documentChecklistsRouter from "./document-checklists";
+import messagesRouter from "./messages";
+import chatRouter from "./chat";
+import remindersRouter from "./reminders";
 
 const router: IRouter = Router();
 
@@ -36,6 +41,11 @@ router.use("/notification-templates", notificationTemplatesRouter);
 router.use("/student-documents", studentDocumentsRouter);
 router.use("/role-menu-access", roleMenuAccessRouter);
 router.use("/user-positions", userPositionsRouter);
+router.use("/scholarships", scholarshipsRouter);
+router.use("/document-checklists", documentChecklistsRouter);
+router.use("/messages", messagesRouter);
+router.use("/chat", chatRouter);
+router.use("/reminders", remindersRouter);
 router.use("/owner-settings", ownerSettingsRouter);
 router.use("/audit-logs", auditLogsRouter);
 router.use("/admin-invites", adminInvitesRouter);

@@ -29,6 +29,8 @@ router.post("/mine", requireAuth, async (req, res): Promise<void> => {
   const filename = typeof req.body?.filename === "string" ? req.body.filename.trim() : "";
   const contentType = typeof req.body?.contentType === "string" ? req.body.contentType.trim() : "";
   const base64Data = typeof req.body?.base64Data === "string" ? req.body.base64Data.trim() : "";
+  const documentType = typeof req.body?.documentType === "string" && req.body.documentType.trim() ? req.body.documentType.trim() : null;
+  const checklistItemId = typeof req.body?.checklistItemId === "string" && req.body.checklistItemId.trim() ? req.body.checklistItemId.trim() : null;
 
   if (!filename || !contentType || !base64Data) {
     res.status(400).json({ error: "Document file data is required" });
@@ -53,7 +55,8 @@ router.post("/mine", requireAuth, async (req, res): Promise<void> => {
         contentType,
         sizeBytes: saved.sizeBytes,
         status: "uploaded" as const,
-        documentType: null,
+        documentType,
+        checklistItemId,
         assignedToUserId: null,
         assignedToName: null,
         note: null,
@@ -91,9 +94,12 @@ router.patch("/:documentId", requireAdmin, async (req, res): Promise<void> => {
       if (typeof req.body?.documentType === "string") {
         document.documentType = req.body.documentType.trim() || null;
       }
+      if (typeof req.body?.checklistItemId === "string") {
+        document.checklistItemId = req.body.checklistItemId.trim() || null;
+      }
       if (typeof req.body?.assignedToUserId === "string") {
         const assignedToUserId = req.body.assignedToUserId.trim();
-        const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && user.role === "user");
+        const assignee = store.users.find((user) => user.id === assignedToUserId && (user.role === "admin" || user.role === "owner"));
         document.assignedToUserId = assignee?.id ?? null;
         document.assignedToName = assignee ? assignee.name || assignee.email : null;
       }

@@ -241,7 +241,7 @@ export default function AdminDashboardPage() {
               <p className="mt-2 text-sm text-slate-600">A quick visual split of demand by student journey stage.</p>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
-              {["new", "contacted", "counseling", "documents", "applied", "visa", "converted", "lost"].map((stage) => {
+              {["new", "contacted", "counseling", "documents", "applied", "offer", "visa", "enrolled", "lost"].map((stage) => {
                 const count = inquiries.filter((inquiry) => (inquiry.leadStage || "new") === stage).length;
                 const percent = inquiries.length ? Math.max(8, Math.round((count / inquiries.length) * 100)) : 0;
                 return (

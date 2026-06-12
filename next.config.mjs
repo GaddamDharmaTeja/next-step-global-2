@@ -7,6 +7,12 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   turbopack: {},
   transpilePackages: ["@workspace/api-client-react", "@workspace/api-zod"],
+  async rewrites() {
+    return [
+      { source: "/user-portal/:path*", destination: "/" },
+      { source: "/admin/:path*", destination: "/" },
+    ];
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,

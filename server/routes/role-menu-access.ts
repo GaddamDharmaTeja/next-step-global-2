@@ -18,13 +18,14 @@ const allowedMenuIds = new Set([
   "users",
   "roles",
   "notifications",
+  "chats",
   "templates",
   "documents",
   "settings",
   "auditLogs",
 ]);
 
-const allowedUserPortalIds = new Set(["hero", "profile", "inquiries", "programs", "documents"]);
+const allowedUserPortalIds = new Set(["hero", "profile", "inquiries", "programs", "documents", "appointments", "scholarships", "messages"]);
 
 function cleanMenuIds(value: unknown): string[] {
   if (!Array.isArray(value)) return [];

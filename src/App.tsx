@@ -13,7 +13,9 @@ import AboutPage from "./spa-pages/about";
 import ContactPage from "./spa-pages/contact";
 import SignInPage from "./spa-pages/sign-in";
 import SignUpPage from "./spa-pages/sign-up";
+import ForgotPasswordPage from "./spa-pages/forgot-password";
 import UserPortalPage from "./spa-pages/user-portal";
+import UserChatPage from "./spa-pages/user-chat";
 import AdminDashboardPage from "./spa-pages/admin/dashboard";
 import AdminContentPage from "./spa-pages/admin/content";
 import AdminInquiriesPage from "./spa-pages/admin/inquiries";
@@ -28,9 +30,12 @@ import AdminUsersPage from "./spa-pages/admin/users";
 import AdminRolesPage from "./spa-pages/admin/roles";
 import AdminNotificationsPage from "./spa-pages/admin/notifications";
 import AdminTemplatesPage from "./spa-pages/admin/templates";
+import AdminChatsPage from "./spa-pages/admin/chats";
 import AdminOwnerSettingsPage from "./spa-pages/admin/owner-settings";
 import AdminAuditLogsPage from "./spa-pages/admin/audit-logs";
 import AdminDocumentsPage from "./spa-pages/admin/documents";
+import AdminScholarshipsPage from "./spa-pages/admin/scholarships";
+import AdminChecklistsPage from "./spa-pages/admin/checklists";
 import NotFoundPage from "./spa-pages/not-found";
 
 const queryClient = new QueryClient();
@@ -47,7 +52,9 @@ function AppRouter() {
       <Route path="/consultants" component={ConsultantsPage} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/user-portal" component={UserPortalPage} />
+      <Route path="/user-portal/chat" component={UserChatPage} />
       <Route path="/admin" component={AdminDashboardPage} />
       <Route path="/admin/content" component={AdminContentPage} />
       <Route path="/admin/inquiries" component={AdminInquiriesPage} />
@@ -62,9 +69,12 @@ function AppRouter() {
       <Route path="/admin/roles" component={AdminRolesPage} />
       <Route path="/admin/notifications" component={AdminNotificationsPage} />
       <Route path="/admin/templates" component={AdminTemplatesPage} />
+      <Route path="/admin/chats" component={AdminChatsPage} />
       <Route path="/admin/settings" component={AdminOwnerSettingsPage} />
       <Route path="/admin/audit-logs" component={AdminAuditLogsPage} />
       <Route path="/admin/documents" component={AdminDocumentsPage} />
+      <Route path="/admin/scholarships" component={AdminScholarshipsPage} />
+      <Route path="/admin/checklists" component={AdminChecklistsPage} />
       <Route component={NotFoundPage} />
     </Switch>
   );

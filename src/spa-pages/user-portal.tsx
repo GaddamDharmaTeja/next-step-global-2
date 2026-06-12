@@ -1,12 +1,23 @@
+import { useState } from "react";
 import { useGetMyProfile, useListPrograms } from "@workspace/api-client-react";
 import { Link, Redirect, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getGetMyProfileQueryKey } from "@workspace/api-client-react";
-import { getRoleMenuAccess, listMyInquiries, signOut } from "@/lib/api";
-import { listMyStudentDocuments, uploadStudentDocument } from "@/lib/api";
+import {
+  createAppointment,
+  getRoleMenuAccess,
+  listConsultants,
+  listDocumentChecklists,
+  listMyInquiries,
+  listMyStudentDocuments,
+  listScholarships,
+  signOut,
+  uploadStudentDocument,
+} from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowUpRight,
@@ -18,11 +29,14 @@ import {
   GraduationCap,
   ListChecks,
   Mail,
+  MessageCircle,
   Phone,
   Sparkles,
   UserRound,
 } from "lucide-react";
 import { BrandLogo } from "@/components/layout/brand-logo";
+
+type MeetingType = "phone" | "video" | "office";
 
 function getStatusClasses(status: "pending" | "contacted" | "resolved") {
   if (status === "resolved") {
@@ -41,13 +55,14 @@ const applicationSteps = [
   { key: "counseling", label: "Counseling", stages: ["counseling"] },
   { key: "documents", label: "Documents", stages: ["documents"] },
   { key: "applied", label: "Applications", stages: ["applied"] },
+  { key: "offer", label: "Offer", stages: ["offer"] },
   { key: "visa", label: "Visa", stages: ["visa"] },
-  { key: "departure", label: "Departure ready", stages: ["converted"] },
+  { key: "departure", label: "Enrolled", stages: ["enrolled"] },
 ];
 
 function activeStage(inquiries: Awaited<ReturnType<typeof listMyInquiries>>) {
   const latest = [...inquiries].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-  return latest?.leadStage || (latest?.status === "resolved" ? "converted" : latest?.status === "contacted" ? "contacted" : "new");
+  return latest?.leadStage || (latest?.status === "resolved" ? "enrolled" : latest?.status === "contacted" ? "contacted" : "new");
 }
 
 function checklistFor(inquiries: Awaited<ReturnType<typeof listMyInquiries>>) {
@@ -74,6 +89,8 @@ export default function UserPortalPage() {
     queryFn: listMyStudentDocuments,
     enabled: Boolean(profile),
   });
+  const { data: consultants = [] } = useQuery({ queryKey: ["/api/consultants"], queryFn: listConsultants, enabled: Boolean(profile) });
+  const { data: scholarships = [] } = useQuery({ queryKey: ["/api/scholarships"], queryFn: () => listScholarships(), enabled: Boolean(profile) });
   const { data: contentAccess } = useQuery({
     queryKey: ["/api/role-menu-access"],
     queryFn: getRoleMenuAccess,
@@ -82,6 +99,22 @@ export default function UserPortalPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [appointmentForm, setAppointmentForm] = useState({
+    destination: "",
+    consultantId: "",
+    preferredDate: "",
+    preferredTime: "",
+    meetingType: "phone" as MeetingType,
+    notes: "",
+  });
+  const [selectedChecklistItemId, setSelectedChecklistItemId] = useState("");
+  const myInquiries = Array.isArray(inquiries) ? inquiries : [];
+  const latestInquiry = [...myInquiries].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  const { data: checklistTemplates = [] } = useQuery({
+    queryKey: ["/api/document-checklists", latestInquiry?.destination, latestInquiry?.programLevel],
+    queryFn: () => listDocumentChecklists({ destination: latestInquiry?.destination || undefined, level: latestInquiry?.programLevel || undefined }),
+    enabled: Boolean(profile),
+  });
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">Loading...</div>;
@@ -96,14 +129,15 @@ export default function UserPortalPage() {
   }
 
   const displayedPrograms = Array.isArray(programs) ? programs.slice(0, 4) : [];
-  const myInquiries = Array.isArray(inquiries) ? inquiries : [];
   const documentList = Array.isArray(documents) ? documents : [];
   const firstName = profile.name?.trim().split(/\s+/)[0] || "Student";
   const pendingCount = myInquiries.filter((entry) => entry.status === "pending").length;
   const currentStage = activeStage(myInquiries);
-  const documentChecklist = checklistFor(myInquiries);
+  const documentChecklist = checklistTemplates[0]?.items.map((item) => item.label) || checklistFor(myInquiries);
+  const checklistItems = checklistTemplates[0]?.items || documentChecklist.map((label) => ({ id: label.toLowerCase().replace(/[^a-z0-9]+/g, "-"), label, required: true }));
   const visibleSections = contentAccess?.userPortal || ["hero", "profile", "inquiries", "programs", "documents"];
   const canSee = (section: string) => visibleSections.includes(section);
+  const readinessScore = latestInquiry?.visaReadinessScore ?? 10;
 
   const handleSignOut = async () => {
     try {
@@ -118,11 +152,31 @@ export default function UserPortalPage() {
   const handleDocumentUpload = async (file: File | null) => {
     if (!file) return;
     try {
-      await uploadStudentDocument({ file });
+      await uploadStudentDocument({ file, checklistItemId: selectedChecklistItemId || null, documentType: checklistItems.find((item) => item.id === selectedChecklistItemId)?.label || null });
       await queryClient.invalidateQueries({ queryKey: ["/api/student-documents/mine"] });
       toast({ title: "Document uploaded" });
     } catch (error) {
       toast({ title: error instanceof Error ? error.message : "Failed to upload document", variant: "destructive" });
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    try {
+      await createAppointment({
+        name: profile.name || firstName,
+        email: profile.email,
+        phone: profile.phone || "Not provided",
+        destination: appointmentForm.destination,
+        consultantId: appointmentForm.consultantId ? Number(appointmentForm.consultantId) : null,
+        meetingType: appointmentForm.meetingType,
+        preferredDate: appointmentForm.preferredDate,
+        preferredTime: appointmentForm.preferredTime,
+        notes: appointmentForm.notes,
+      });
+      setAppointmentForm({ destination: "", consultantId: "", preferredDate: "", preferredTime: "", meetingType: "phone", notes: "" });
+      toast({ title: "Consultation requested" });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "Failed to request appointment", variant: "destructive" });
     }
   };
 
@@ -188,13 +242,13 @@ export default function UserPortalPage() {
                   Explore Programs
                   <ArrowUpRight className="h-4 w-4" />
                 </a>
-                <a
-                  href="#inquiries"
+                <Link
+                  href="/user-portal/chat"
                   className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/15"
                 >
-                  View My Inquiries
-                  <ChevronRight className="h-4 w-4" />
-                </a>
+                  Open Chat
+                  <MessageCircle className="h-4 w-4" />
+                </Link>
               </div>
             </div>
 
@@ -299,12 +353,95 @@ export default function UserPortalPage() {
                   <p className="mt-2 text-sm text-slate-600">This checklist adapts from your inquiry destination when possible.</p>
                 </div>
                 <CardContent className="grid gap-3 p-6 sm:grid-cols-2">
-                  {documentChecklist.map((item) => (
-                    <div key={item} className="rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-800">
-                      {item}
+                  {checklistItems.map((item) => {
+                    const matched = documentList.find((doc) => doc.checklistItemId === item.id || doc.documentType === item.label);
+                    return (
+                    <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-800">
+                      <div className="flex items-center justify-between gap-3">
+                        <span>{item.label}</span>
+                        <span className={`rounded-full px-2 py-1 text-xs ${matched?.status === "approved" ? "bg-emerald-100 text-emerald-700" : matched ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>
+                          {matched?.status || (item.required ? "required" : "optional")}
+                        </span>
+                      </div>
+                    </div>
+                    );
+                  })}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:col-span-2">
+                    <div className="text-sm font-semibold text-slate-900">Visa readiness</div>
+                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-[linear-gradient(90deg,#0e2f6d,#d9a31a)]" style={{ width: `${readinessScore}%` }} />
+                    </div>
+                    <div className="mt-2 text-sm text-slate-600">{readinessScore}% ready based on your current stage and approved uploads.</div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {canSee("appointments") && (
+              <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="border-b border-slate-200/80 p-6">
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Consultation Booking</div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Book a counselor session</h2>
+                </div>
+                <CardContent className="grid gap-3 p-6 md:grid-cols-2">
+                  <Input value={appointmentForm.destination} onChange={(e) => setAppointmentForm({ ...appointmentForm, destination: e.target.value })} placeholder="Destination" />
+                  <Select value={appointmentForm.consultantId || "none"} onValueChange={(value) => setAppointmentForm({ ...appointmentForm, consultantId: value === "none" ? "" : value })}>
+                    <SelectTrigger><SelectValue placeholder="Preferred consultant" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Any consultant</SelectItem>
+                      {consultants.map((consultant) => <SelectItem key={consultant.id} value={String(consultant.id)}>{consultant.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input type="date" value={appointmentForm.preferredDate} onChange={(e) => setAppointmentForm({ ...appointmentForm, preferredDate: e.target.value })} />
+                  <Input type="time" value={appointmentForm.preferredTime} onChange={(e) => setAppointmentForm({ ...appointmentForm, preferredTime: e.target.value })} />
+                  <Select value={appointmentForm.meetingType} onValueChange={(value) => setAppointmentForm({ ...appointmentForm, meetingType: value as "phone" | "video" | "office" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="phone">Phone call</SelectItem>
+                      <SelectItem value="video">Video meeting</SelectItem>
+                      <SelectItem value="office">Office visit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input value={appointmentForm.notes} onChange={(e) => setAppointmentForm({ ...appointmentForm, notes: e.target.value })} placeholder="Notes" />
+                  <Button className="md:col-span-2" onClick={handleBookAppointment}>Request appointment</Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {canSee("scholarships") && (
+              <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="border-b border-slate-200/80 p-6">
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Scholarships</div>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Funding opportunities</h2>
+                </div>
+                <CardContent className="grid gap-4 p-6 md:grid-cols-2">
+                  {scholarships.slice(0, 4).map((scholarship) => (
+                    <div key={scholarship.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="font-semibold text-slate-900">{scholarship.name}</div>
+                      <div className="mt-1 text-sm text-slate-600">{scholarship.country} / {scholarship.programLevel}</div>
+                      <div className="mt-3 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-800">{scholarship.awardValue}</div>
+                      <p className="mt-3 text-sm leading-6 text-slate-600">{scholarship.eligibility}</p>
                     </div>
                   ))}
                 </CardContent>
+              </Card>
+            )}
+
+            {canSee("messages") && (
+              <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+                <div className="flex items-center justify-between gap-4 border-b border-slate-200/80 p-6">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-700">Messages</div>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Counselor chat</h2>
+                    <p className="mt-2 text-sm text-slate-600">Chat history is grouped by inquiry on its own page.</p>
+                  </div>
+                  <Link href="/user-portal/chat">
+                    <Button className="gap-2">
+                      <MessageCircle className="h-4 w-4" />
+                      Open Chat
+                    </Button>
+                  </Link>
+                </div>
               </Card>
             )}
 
@@ -446,7 +583,16 @@ export default function UserPortalPage() {
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">My Uploads</h2>
                   <p className="mt-2 text-sm text-slate-600">Upload transcripts, SOPs, and supporting files for review.</p>
                 </div>
-                <Input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="max-w-[240px]" onChange={(e) => handleDocumentUpload(e.target.files?.[0] || null)} />
+                <div className="grid max-w-[320px] gap-2">
+                  <Select value={selectedChecklistItemId || "none"} onValueChange={(value) => setSelectedChecklistItemId(value === "none" ? "" : value)}>
+                    <SelectTrigger><SelectValue placeholder="Match checklist item" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">General upload</SelectItem>
+                      {checklistItems.map((item) => <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleDocumentUpload(e.target.files?.[0] || null)} />
+                </div>
               </div>
               <CardContent className="space-y-3 p-6">
                 {documentList.length === 0 && <div className="text-sm text-slate-600">No documents uploaded yet.</div>}
@@ -468,6 +614,18 @@ export default function UserPortalPage() {
           </div>
         </section>
       </main>
+
+      {canSee("messages") && (
+        <Link href="/user-portal/chat">
+          <button
+            type="button"
+            className="fixed bottom-5 right-5 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-[#0e2f6d] text-white shadow-[0_18px_40px_rgba(14,47,109,0.35)] transition hover:-translate-y-0.5 hover:bg-[#17458d]"
+            aria-label="Open chat page"
+          >
+            <MessageCircle className="h-7 w-7" />
+          </button>
+        </Link>
+      )}
     </div>
   );
 }

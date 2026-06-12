@@ -13,6 +13,7 @@ import {
   MessageCircle,
   MessageSquare,
   NotebookText,
+  ScrollText,
   UserCog,
   ShieldCheck,
   Users,
@@ -73,8 +74,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     { id: "users", label: "Users", href: "/admin/users", icon: Users },
     { id: "roles", label: "Roles", href: "/admin/roles", icon: UserCog },
     { id: "notifications", label: "Notifications", href: "/admin/notifications", icon: Bell },
+    { id: "chats", label: "Chats", href: "/admin/chats", icon: MessageCircle },
     { id: "templates", label: "Templates", href: "/admin/templates", icon: NotebookText },
     { id: "documents", label: "Documents", href: "/admin/documents", icon: FileText },
+    { id: "scholarships", label: "Scholarships", href: "/admin/scholarships", icon: GraduationCap },
+    { id: "checklists", label: "Checklists", href: "/admin/checklists", icon: ScrollText },
   ];
 
   if (profile.role === "owner") {

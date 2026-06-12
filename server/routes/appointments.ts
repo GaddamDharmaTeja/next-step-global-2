@@ -15,6 +15,8 @@ router.post("/", async (req, res): Promise<void> => {
   const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
   const phone = typeof req.body?.phone === "string" ? req.body.phone.trim() : "";
   const destination = typeof req.body?.destination === "string" && req.body.destination.trim() ? req.body.destination.trim() : null;
+  const consultantId = typeof req.body?.consultantId === "number" ? req.body.consultantId : Number(req.body?.consultantId || 0) || null;
+  const meetingType = ["phone", "video", "office"].includes(req.body?.meetingType) ? req.body.meetingType : "phone";
   const preferredDate = typeof req.body?.preferredDate === "string" ? req.body.preferredDate.trim() : "";
   const preferredTime = typeof req.body?.preferredTime === "string" ? req.body.preferredTime.trim() : "";
   const notes = typeof req.body?.notes === "string" && req.body.notes.trim() ? req.body.notes.trim() : null;
@@ -25,14 +27,18 @@ router.post("/", async (req, res): Promise<void> => {
   }
 
   const created = await updateStore((store) => {
-    const appointment = {
-      id: nextNumericId(store.appointments),
-      name,
-      email,
-      phone,
-      destination,
-      assignedToUserId: null,
-      assignedToName: null,
+      const consultant = consultantId ? store.consultants.find((entry) => entry.id === consultantId) : null;
+      const appointment = {
+        id: nextNumericId(store.appointments),
+        name,
+        email,
+        phone,
+        destination,
+        consultantId: consultant?.id || null,
+        consultantName: consultant?.name || null,
+        meetingType,
+        assignedToUserId: null,
+        assignedToName: null,
       preferredDate,
       preferredTime,
       notes,
@@ -51,6 +57,8 @@ router.patch("/:appointmentId", requireAdmin, async (req, res): Promise<void> =>
   const status = typeof req.body?.status === "string" ? req.body.status : "";
   const destination = typeof req.body?.destination === "string" ? req.body.destination.trim() : undefined;
   const assignedToUserId = typeof req.body?.assignedToUserId === "string" ? req.body.assignedToUserId.trim() : undefined;
+  const consultantId = req.body?.consultantId === null ? null : typeof req.body?.consultantId === "number" ? req.body.consultantId : typeof req.body?.consultantId === "string" ? Number(req.body.consultantId) : undefined;
+  const meetingType = typeof req.body?.meetingType === "string" && ["phone", "video", "office"].includes(req.body.meetingType) ? req.body.meetingType : undefined;
   const preferredDate = typeof req.body?.preferredDate === "string" ? req.body.preferredDate.trim() : undefined;
   const preferredTime = typeof req.body?.preferredTime === "string" ? req.body.preferredTime.trim() : undefined;
   const notes = typeof req.body?.notes === "string" ? req.body.notes.trim() : undefined;
@@ -65,8 +73,14 @@ router.patch("/:appointmentId", requireAdmin, async (req, res): Promise<void> =>
     if (!appointment) return null;
     if (status) appointment.status = status as AppointmentStatus;
     if (destination !== undefined) appointment.destination = destination || null;
+    if (consultantId !== undefined) {
+      const consultant = consultantId ? store.consultants.find((entry) => entry.id === consultantId) : null;
+      appointment.consultantId = consultant?.id ?? null;
+      appointment.consultantName = consultant?.name ?? null;
+    }
+    if (meetingType !== undefined) appointment.meetingType = meetingType as any;
     if (assignedToUserId !== undefined) {
-      const assignee = store.users.find((user) => user.id === assignedToUserId && user.passwordHash && user.role === "user");
+      const assignee = store.users.find((user) => user.id === assignedToUserId && (user.role === "admin" || user.role === "owner"));
       appointment.assignedToUserId = assignee?.id ?? null;
       appointment.assignedToName = assignee ? assignee.name || assignee.email : null;
     }

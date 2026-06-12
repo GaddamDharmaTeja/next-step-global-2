@@ -16,6 +16,9 @@ const clearableCollections = new Set([
   "adminInvites",
   "notificationTemplates",
   "studentDocuments",
+  "messages",
+  "chatConversations",
+  "chatMessages",
 ]);
 
 function byteSize(value: unknown): number {
@@ -108,6 +111,15 @@ router.post("/database/clear", requireOwner, async (req, res): Promise<void> => 
     const updated = await updateStore((store: any) => {
       for (const collection of collections) {
         store[collection] = [];
+      }
+      if (collections.includes("chatConversations")) {
+        store.chatMessages = [];
+      }
+      if (collections.includes("chatMessages")) {
+        store.chatConversations = store.chatConversations.map((conversation: any) => ({
+          ...conversation,
+          updatedAt: conversation.createdAt,
+        }));
       }
       store.auditLogs.unshift(
         createAuditLogEntry({

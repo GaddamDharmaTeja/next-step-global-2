@@ -5,11 +5,13 @@ import { MongoClient, type Collection } from "mongodb";
 
 export type UserRole = "user" | "admin" | "owner";
 export type InquiryStatus = "pending" | "contacted" | "resolved";
-export type LeadStage = "new" | "contacted" | "counseling" | "documents" | "applied" | "visa" | "converted" | "lost";
+export type LeadStage = "new" | "contacted" | "counseling" | "documents" | "applied" | "offer" | "visa" | "enrolled" | "lost";
 export type AppointmentStatus = "requested" | "scheduled" | "completed" | "cancelled";
 export type InviteStatus = "pending" | "accepted" | "revoked";
 export type DocumentStatus = "uploaded" | "reviewing" | "approved" | "rejected";
 export type NotificationChannel = "email" | "whatsapp" | "both";
+export type MeetingType = "phone" | "video" | "office";
+export type ProgramLevel = "undergraduate" | "postgraduate" | "research" | "diploma" | "any";
 
 export interface UserRecord {
   id: string;
@@ -50,6 +52,11 @@ export interface InquiryRecord {
   followUpAt: string | null;
   notes: string | null;
   leadScore?: number;
+  destination: string | null;
+  programLevel: ProgramLevel | null;
+  intake: string | null;
+  lastContactedAt: string | null;
+  visaReadinessScore: number;
   createdAt: string;
 }
 
@@ -130,6 +137,9 @@ export interface AppointmentRecord {
   email: string;
   phone: string;
   destination: string | null;
+  consultantId: number | null;
+  consultantName: string | null;
+  meetingType: MeetingType;
   assignedToUserId: string | null;
   assignedToName: string | null;
   preferredDate: string;
@@ -236,10 +246,75 @@ export interface StudentDocumentRecord {
   sizeBytes: number;
   status: DocumentStatus;
   documentType: string | null;
+  checklistItemId: string | null;
   assignedToUserId: string | null;
   assignedToName: string | null;
   note: string | null;
   uploadedAt: string;
+}
+
+export interface ScholarshipRecord {
+  id: number;
+  name: string;
+  country: string;
+  programLevel: ProgramLevel;
+  eligibility: string;
+  awardValue: string;
+  deadline: string;
+  intake: string | null;
+  applicationLink: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface DocumentChecklistItemRecord {
+  id: string;
+  label: string;
+  required: boolean;
+}
+
+export interface DocumentChecklistTemplateRecord {
+  id: number;
+  destination: string;
+  programLevel: ProgramLevel;
+  title: string;
+  items: DocumentChecklistItemRecord[];
+  createdAt: string;
+}
+
+export interface MessageRecord {
+  id: string;
+  inquiryId: number | null;
+  studentEmail: string;
+  studentUserId: string | null;
+  senderUserId: string | null;
+  senderName: string;
+  senderRole: UserRole | "system";
+  body: string;
+  createdAt: string;
+}
+
+export type ChatConversationType = "direct" | "group";
+
+export interface ChatConversationRecord {
+  id: string;
+  type: ChatConversationType;
+  title: string;
+  createdByUserId: string | null;
+  createdByName: string;
+  memberUserIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessageRecord {
+  id: string;
+  conversationId: string;
+  senderUserId: string | null;
+  senderName: string;
+  senderRole: UserRole | "system";
+  body: string;
+  createdAt: string;
 }
 
 export interface AppStore {
@@ -258,6 +333,11 @@ export interface AppStore {
   adminInvites: AdminInviteRecord[];
   notificationTemplates: NotificationTemplateRecord[];
   studentDocuments: StudentDocumentRecord[];
+  scholarships: ScholarshipRecord[];
+  documentChecklistTemplates: DocumentChecklistTemplateRecord[];
+  messages: MessageRecord[];
+  chatConversations: ChatConversationRecord[];
+  chatMessages: ChatMessageRecord[];
   roleMenuAccess: {
     admin: string[];
     userPortal: string[];
@@ -767,6 +847,67 @@ const seedStore: AppStore = {
     },
   ],
   studentDocuments: [],
+  scholarships: [
+    {
+      id: 1,
+      name: "Global Merit Award",
+      country: "Canada",
+      programLevel: "postgraduate",
+      eligibility: "Strong academics, complete application file, and English proficiency evidence.",
+      awardValue: "Up to CAD 5,000",
+      deadline: "2026-09-30",
+      intake: "January 2027",
+      applicationLink: "https://nextstepglobal.net/scholarships",
+      active: true,
+      createdAt: "2026-05-12T00:00:00.000Z",
+    },
+    {
+      id: 2,
+      name: "Early Application Tuition Grant",
+      country: "United Kingdom",
+      programLevel: "any",
+      eligibility: "Students applying before priority deadline with complete academic documents.",
+      awardValue: "GBP 1,000 - 3,000",
+      deadline: "2026-07-31",
+      intake: "September 2026",
+      applicationLink: "https://nextstepglobal.net/scholarships",
+      active: true,
+      createdAt: "2026-05-12T00:00:00.000Z",
+    },
+  ],
+  documentChecklistTemplates: [
+    {
+      id: 1,
+      destination: "Canada",
+      programLevel: "any",
+      title: "Canada student visa checklist",
+      items: [
+        { id: "passport", label: "Passport", required: true },
+        { id: "transcripts", label: "Academic transcripts", required: true },
+        { id: "english-test", label: "IELTS/PTE/TOEFL score", required: true },
+        { id: "financial-proof", label: "GIC or financial proof", required: true },
+        { id: "sop", label: "Statement of purpose", required: true },
+      ],
+      createdAt: "2026-05-12T00:00:00.000Z",
+    },
+    {
+      id: 2,
+      destination: "Default",
+      programLevel: "any",
+      title: "General study abroad checklist",
+      items: [
+        { id: "passport", label: "Passport", required: true },
+        { id: "transcripts", label: "Academic transcripts", required: true },
+        { id: "english-test", label: "English test score", required: false },
+        { id: "sop", label: "Statement of purpose", required: true },
+        { id: "financial-documents", label: "Financial documents", required: true },
+      ],
+      createdAt: "2026-05-12T00:00:00.000Z",
+    },
+  ],
+  messages: [],
+  chatConversations: [],
+  chatMessages: [],
   roleMenuAccess: {
     admin: [
       "dashboard",
@@ -780,10 +921,13 @@ const seedStore: AppStore = {
       "gallery",
       "testimonials",
       "notifications",
+      "chats",
       "templates",
       "documents",
+      "scholarships",
+      "checklists",
     ],
-    userPortal: ["hero", "profile", "inquiries", "programs", "documents"],
+    userPortal: ["hero", "profile", "inquiries", "programs", "documents", "appointments", "scholarships", "messages"],
   },
 };
 
@@ -920,6 +1064,41 @@ function normalizeStore(store: AppStore): boolean {
     store.studentDocuments = [];
     changed = true;
   }
+  if (!store.scholarships) {
+    store.scholarships = cloneStore(seedStore).scholarships;
+    changed = true;
+  }
+  if (!store.documentChecklistTemplates) {
+    store.documentChecklistTemplates = cloneStore(seedStore).documentChecklistTemplates;
+    changed = true;
+  }
+  if (!store.messages) {
+    store.messages = [];
+    changed = true;
+  }
+  if (!store.chatConversations) {
+    store.chatConversations = [];
+    changed = true;
+  }
+  if (!store.chatMessages) {
+    store.chatMessages = [];
+    changed = true;
+  }
+  for (const conversation of store.chatConversations) {
+    if (!Array.isArray(conversation.memberUserIds)) {
+      conversation.memberUserIds = [];
+      changed = true;
+    }
+    conversation.memberUserIds = Array.from(new Set(conversation.memberUserIds.filter(Boolean)));
+    if (!conversation.updatedAt) {
+      conversation.updatedAt = conversation.createdAt;
+      changed = true;
+    }
+    if (!conversation.type) {
+      conversation.type = conversation.memberUserIds.length > 2 ? "group" : "direct";
+      changed = true;
+    }
+  }
   if (!store.roleMenuAccess) {
     store.roleMenuAccess = cloneStore(seedStore).roleMenuAccess;
     changed = true;
@@ -927,6 +1106,18 @@ function normalizeStore(store: AppStore): boolean {
   if (!store.roleMenuAccess.userPortal) {
     store.roleMenuAccess.userPortal = cloneStore(seedStore).roleMenuAccess.userPortal;
     changed = true;
+  }
+  for (const menuId of ["scholarships", "checklists", "chats"]) {
+    if (!store.roleMenuAccess.admin.includes(menuId)) {
+      store.roleMenuAccess.admin.push(menuId);
+      changed = true;
+    }
+  }
+  for (const sectionId of ["appointments", "scholarships", "messages"]) {
+    if (!store.roleMenuAccess.userPortal.includes(sectionId)) {
+      store.roleMenuAccess.userPortal.push(sectionId);
+      changed = true;
+    }
   }
   if (!store.consultants) {
     store.consultants = cloneStore(seedStore).consultants;
@@ -966,7 +1157,11 @@ function normalizeStore(store: AppStore): boolean {
 
   for (const inquiry of store.inquiries) {
     if (!inquiry.leadStage) {
-      inquiry.leadStage = inquiry.status === "resolved" ? "converted" : inquiry.status === "contacted" ? "contacted" : "new";
+      inquiry.leadStage = inquiry.status === "resolved" ? "enrolled" : inquiry.status === "contacted" ? "contacted" : "new";
+      changed = true;
+    }
+    if ((inquiry.leadStage as string) === "converted") {
+      inquiry.leadStage = "enrolled";
       changed = true;
     }
     if (inquiry.followUpAt === undefined) {
@@ -983,6 +1178,27 @@ function normalizeStore(store: AppStore): boolean {
     }
     if (inquiry.leadScore === undefined) {
       inquiry.leadScore = calculateLeadScore(inquiry);
+      changed = true;
+    }
+    if (inquiry.destination === undefined) {
+      inquiry.destination = inferDestination(`${inquiry.subject} ${inquiry.message}`, store.destinations);
+      changed = true;
+    }
+    if (inquiry.programLevel === undefined) {
+      inquiry.programLevel = inferProgramLevel(`${inquiry.subject} ${inquiry.message}`);
+      changed = true;
+    }
+    if (inquiry.intake === undefined) {
+      inquiry.intake = inferIntake(`${inquiry.subject} ${inquiry.message}`);
+      changed = true;
+    }
+    if (inquiry.lastContactedAt === undefined) {
+      inquiry.lastContactedAt = inquiry.status === "contacted" ? inquiry.createdAt : null;
+      changed = true;
+    }
+    const readinessScore = calculateVisaReadinessScore(inquiry, store.studentDocuments);
+    if (inquiry.visaReadinessScore !== readinessScore) {
+      inquiry.visaReadinessScore = readinessScore;
       changed = true;
     }
   }
@@ -1021,6 +1237,18 @@ function normalizeStore(store: AppStore): boolean {
   }
 
   for (const appointment of store.appointments) {
+    if (appointment.consultantId === undefined) {
+      appointment.consultantId = null;
+      changed = true;
+    }
+    if (appointment.consultantName === undefined) {
+      appointment.consultantName = null;
+      changed = true;
+    }
+    if (appointment.meetingType === undefined) {
+      appointment.meetingType = "phone";
+      changed = true;
+    }
     if (appointment.assignedToUserId === undefined) {
       appointment.assignedToUserId = null;
       changed = true;
@@ -1055,6 +1283,10 @@ function normalizeStore(store: AppStore): boolean {
       document.documentType = null;
       changed = true;
     }
+    if (document.checklistItemId === undefined) {
+      document.checklistItemId = null;
+      changed = true;
+    }
     if (document.assignedToUserId === undefined) {
       document.assignedToUserId = null;
       changed = true;
@@ -1065,7 +1297,83 @@ function normalizeStore(store: AppStore): boolean {
     }
   }
 
+  for (const scholarship of store.scholarships) {
+    if (!scholarship.programLevel) {
+      scholarship.programLevel = "any";
+      changed = true;
+    }
+    if (scholarship.intake === undefined) {
+      scholarship.intake = null;
+      changed = true;
+    }
+    if (scholarship.applicationLink === undefined) {
+      scholarship.applicationLink = null;
+      changed = true;
+    }
+    if (scholarship.active === undefined) {
+      scholarship.active = true;
+      changed = true;
+    }
+  }
+
+  for (const template of store.documentChecklistTemplates) {
+    if (!template.programLevel) {
+      template.programLevel = "any";
+      changed = true;
+    }
+    if (!Array.isArray(template.items)) {
+      template.items = [];
+      changed = true;
+    }
+    template.items = template.items.map((item, index) => ({
+      id: item.id || `${template.destination.toLowerCase().replace(/\W+/g, "-")}-${index + 1}`,
+      label: item.label || "Document",
+      required: item.required !== false,
+    }));
+  }
+
   return changed;
+}
+
+function inferDestination(text: string, destinations: DestinationRecord[]): string | null {
+  const normalized = text.toLowerCase();
+  const found = destinations.find((destination) =>
+    [destination.name, destination.slug, destination.code].some((value) => normalized.includes(String(value).toLowerCase())),
+  );
+  return found?.name || null;
+}
+
+function inferProgramLevel(text: string): ProgramLevel | null {
+  const normalized = text.toLowerCase();
+  if (/(phd|doctorate|research)/.test(normalized)) return "research";
+  if (/(masters|master|mba|msc|ms|postgraduate)/.test(normalized)) return "postgraduate";
+  if (/(bachelor|undergraduate|bsc|ba|bba)/.test(normalized)) return "undergraduate";
+  if (/(diploma|certificate)/.test(normalized)) return "diploma";
+  return null;
+}
+
+function inferIntake(text: string): string | null {
+  const match = text.match(/\b(january|february|may|july|september|november|spring|summer|fall|autumn)\s*\d{0,4}/i);
+  return match ? match[0].trim() : null;
+}
+
+export function calculateVisaReadinessScore(inquiry: Pick<InquiryRecord, "email" | "leadStage">, documents: StudentDocumentRecord[]): number {
+  const stageWeights: Record<LeadStage, number> = {
+    new: 10,
+    contacted: 20,
+    counseling: 35,
+    documents: 50,
+    applied: 65,
+    offer: 78,
+    visa: 88,
+    enrolled: 100,
+    lost: 0,
+  };
+  const studentDocuments = documents.filter((document) => document.userEmail.toLowerCase() === inquiry.email.toLowerCase());
+  const approved = studentDocuments.filter((document) => document.status === "approved").length;
+  const uploaded = studentDocuments.length;
+  const documentScore = Math.min(35, approved * 10 + Math.max(0, uploaded - approved) * 4);
+  return Math.min(100, Math.max(stageWeights[inquiry.leadStage || "new"], stageWeights[inquiry.leadStage || "new"] + documentScore));
 }
 
 function calculateLeadScore(input: {
@@ -1083,7 +1391,7 @@ function calculateLeadScore(input: {
   if (/(visa|urgent|asap|september|january|may|intake|scholarship|ielts|pte|budget)/.test(text)) score += 25;
   if (input.message.length > 120) score += 15;
   if (input.followUpAt && new Date(input.followUpAt).getTime() <= Date.now() + 1000 * 60 * 60 * 24 * 7) score += 10;
-  if (input.leadStage && ["counseling", "documents", "applied", "visa"].includes(input.leadStage)) score += 15;
+  if (input.leadStage && ["counseling", "documents", "applied", "offer", "visa"].includes(input.leadStage)) score += 15;
   return Math.min(100, score);
 }
 

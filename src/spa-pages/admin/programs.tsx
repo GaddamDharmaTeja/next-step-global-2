@@ -14,6 +14,7 @@ import * as z from "zod";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { uploadImageFile } from "@/lib/api";
 
 const programSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -61,6 +62,7 @@ export default function AdminProgramsPage() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const form = useForm<z.infer<typeof programSchema>>({
     resolver: zodResolver(programSchema),
@@ -153,6 +155,20 @@ export default function AdminProgramsPage() {
     });
   };
 
+  const handleImageUpload = async (file: File | null) => {
+    if (!file) return;
+    setIsUploadingImage(true);
+    try {
+      const uploaded = await uploadImageFile(file, { category: "program" });
+      form.setValue("imageUrl", uploaded.url, { shouldDirty: true, shouldValidate: true });
+      toast({ title: "Program image uploaded" });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "Failed to upload image", variant: "destructive" });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   if (isLoading) return <AdminLayout><div className="p-8">Loading...</div></AdminLayout>;
 
   return (
@@ -189,7 +205,17 @@ export default function AdminProgramsPage() {
                       <FormItem><FormLabel>Duration</FormLabel><FormControl><Input {...field} placeholder="e.g. 2 years" /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                      <FormItem><FormLabel>Image URL (optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem>
+                        <FormLabel>Program Image</FormLabel>
+                        <FormControl>
+                          <div className="space-y-3">
+                            <Input type="file" accept="image/*" disabled={isUploadingImage} onChange={(event) => handleImageUpload(event.target.files?.[0] || null)} />
+                            {field.value && <img src={field.value} alt="Program preview" className="h-28 w-full rounded-xl object-cover" />}
+                            <Input type="hidden" {...field} />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">

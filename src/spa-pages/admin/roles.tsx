@@ -39,8 +39,11 @@ const manageableMenus = [
   { id: "testimonials", label: "Testimonials" },
   { id: "users", label: "Users" },
   { id: "notifications", label: "Notifications" },
+  { id: "chats", label: "Chats" },
   { id: "templates", label: "Templates" },
   { id: "documents", label: "Documents" },
+  { id: "scholarships", label: "Scholarships" },
+  { id: "checklists", label: "Checklists" },
 ];
 
 const userPortalSections = [
@@ -49,6 +52,9 @@ const userPortalSections = [
   { id: "inquiries", label: "My Inquiries" },
   { id: "programs", label: "Recommended Programs" },
   { id: "documents", label: "Document Uploads" },
+  { id: "appointments", label: "Consultation Booking" },
+  { id: "scholarships", label: "Scholarship Finder" },
+  { id: "messages", label: "Portal Messages" },
 ];
 
 const roleMeta = {

@@ -133,6 +133,51 @@ router.post("/logout", (req, res): void => {
   res.status(204).send();
 });
 
+router.post("/reset-password", async (req, res): Promise<void> => {
+  const email = typeof req.body?.email === "string" ? normalizeEmail(req.body.email) : "";
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+
+  if (!email || !email.includes("@")) {
+    res.status(400).json({ error: "A valid email is required" });
+    return;
+  }
+  if (password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters long" });
+    return;
+  }
+
+  try {
+    const passwordHash = await hashPassword(password);
+    const updated = await updateStore((store) => {
+      const user = store.users.find((entry) => normalizeEmail(entry.email) === email && entry.passwordHash);
+      if (!user) return null;
+      user.passwordHash = passwordHash;
+      store.auditLogs.unshift(
+        createAuditLogEntry({
+          actorUserId: user.id,
+          actorName: user.name || user.email,
+          actorRole: user.role,
+          action: "user.password.reset",
+          entityType: "user",
+          entityId: user.id,
+          summary: `Password reset for ${user.email}`,
+        }),
+      );
+      return user;
+    });
+
+    if (!updated) {
+      res.status(404).json({ error: "No account found with that email" });
+      return;
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to reset password");
+    res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+
 router.get("/me", requireAuth, async (req, res): Promise<void> => {
   res.json(toPublicUser(req.authUser!));
 });
@@ -268,7 +313,58 @@ router.delete("/:userId", requireOwner, async (req, res): Promise<void> => {
         return "last-owner" as const;
       }
 
+      const userEmail = normalizeEmail(user.email);
+      const deletedInquiries = store.inquiries.filter((entry) => normalizeEmail(entry.email) === userEmail).length;
+      const deletedAppointments = store.appointments.filter((entry) => normalizeEmail(entry.email) === userEmail).length;
+      const deletedDocuments = store.studentDocuments.filter((entry) => entry.userId === user.id || normalizeEmail(entry.userEmail) === userEmail).length;
+      const deletedMessages = store.messages.filter(
+        (entry) =>
+          entry.studentUserId === user.id ||
+          entry.senderUserId === user.id ||
+          normalizeEmail(entry.studentEmail) === userEmail,
+      ).length;
+      const deletedChatMessages = store.chatMessages.filter((entry) => entry.senderUserId === user.id).length;
+      const affectedChatConversations = store.chatConversations.filter((entry) => entry.memberUserIds.includes(user.id)).length;
+
       store.users = store.users.filter((entry) => entry.id !== user.id);
+      store.inquiries = store.inquiries
+        .filter((entry) => normalizeEmail(entry.email) !== userEmail)
+        .map((entry) =>
+          entry.assignedToUserId === user.id
+            ? { ...entry, assignedToUserId: null, assignedToName: null }
+            : entry,
+        );
+      store.appointments = store.appointments
+        .filter((entry) => normalizeEmail(entry.email) !== userEmail)
+        .map((entry) =>
+          entry.assignedToUserId === user.id
+            ? { ...entry, assignedToUserId: null, assignedToName: null }
+            : entry,
+        );
+      store.studentDocuments = store.studentDocuments
+        .filter((entry) => entry.userId !== user.id && normalizeEmail(entry.userEmail) !== userEmail)
+        .map((entry) =>
+          entry.assignedToUserId === user.id
+            ? { ...entry, assignedToUserId: null, assignedToName: null }
+            : entry,
+        );
+      store.messages = store.messages.filter(
+        (entry) =>
+          entry.studentUserId !== user.id &&
+          entry.senderUserId !== user.id &&
+          normalizeEmail(entry.studentEmail) !== userEmail,
+      );
+      store.chatMessages = store.chatMessages.filter((entry) => entry.senderUserId !== user.id);
+      store.chatConversations = store.chatConversations
+        .map((entry) => ({
+          ...entry,
+          memberUserIds: entry.memberUserIds.filter((memberUserId) => memberUserId !== user.id),
+        }))
+        .filter((entry) => entry.memberUserIds.length > 0);
+      store.adminInvites = store.adminInvites.filter((entry) => normalizeEmail(entry.email) !== userEmail);
+      store.auditLogs = store.auditLogs.filter(
+        (entry) => entry.actorUserId !== user.id && !(entry.entityType === "user" && entry.entityId === user.id),
+      );
       store.auditLogs.unshift(
         createAuditLogEntry({
           actorUserId: req.authUser?.id,
@@ -277,7 +373,7 @@ router.delete("/:userId", requireOwner, async (req, res): Promise<void> => {
           action: "user.deleted",
           entityType: "user",
           entityId: user.id,
-          summary: `Deleted user ${user.email}`,
+          summary: `Deleted user ${user.email} and removed related data: ${deletedInquiries} inquiries, ${deletedAppointments} appointments, ${deletedDocuments} documents, ${deletedMessages} inquiry messages, ${deletedChatMessages} chat messages, ${affectedChatConversations} chat memberships`,
         }),
       );
       return user;

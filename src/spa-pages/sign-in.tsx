@@ -148,7 +148,7 @@ export default function SignInPage() {
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel className="text-sm font-semibold text-[#24334f]">Password</FormLabel>
-                        <span className="text-xs font-medium text-slate-500">Minimum 8 characters</span>
+                        <Link href="/forgot-password" className="text-xs font-semibold text-[#0e2f6d] hover:text-[#17458d]">Forgot password?</Link>
                       </div>
                       <FormControl>
                         <Input

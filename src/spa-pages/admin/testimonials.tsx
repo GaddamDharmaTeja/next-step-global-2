@@ -14,6 +14,7 @@ import * as z from "zod";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { uploadImageFile } from "@/lib/api";
 
 const testimonialSchema = z.object({
   studentName: z.string().min(1, "Name required"),
@@ -34,6 +35,7 @@ export default function AdminTestimonialsPage() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const form = useForm<z.infer<typeof testimonialSchema>>({
     resolver: zodResolver(testimonialSchema),
@@ -91,6 +93,20 @@ export default function AdminTestimonialsPage() {
     });
   };
 
+  const handleAvatarUpload = async (file: File | null) => {
+    if (!file) return;
+    setIsUploadingAvatar(true);
+    try {
+      const uploaded = await uploadImageFile(file, { category: "testimonial" });
+      form.setValue("avatarUrl", uploaded.url, { shouldDirty: true, shouldValidate: true });
+      toast({ title: "Avatar uploaded" });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "Failed to upload avatar", variant: "destructive" });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   if (isLoading) return <AdminLayout><div className="p-8">Loading...</div></AdminLayout>;
 
   return (
@@ -130,7 +146,17 @@ export default function AdminTestimonialsPage() {
                       <FormItem><FormLabel>Rating (1-5)</FormLabel><FormControl><Input type="number" min="1" max="5" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="avatarUrl" render={({ field }) => (
-                      <FormItem><FormLabel>Avatar URL</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem>
+                        <FormLabel>Avatar</FormLabel>
+                        <FormControl>
+                          <div className="space-y-3">
+                            <Input type="file" accept="image/*" disabled={isUploadingAvatar} onChange={(event) => handleAvatarUpload(event.target.files?.[0] || null)} />
+                            {field.value && <img src={field.value} alt="Avatar preview" className="h-20 w-20 rounded-full object-cover" />}
+                            <Input type="hidden" {...field} />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )} />
                   </div>
                   <FormField control={form.control} name="featured" render={({ field }) => (

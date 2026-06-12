@@ -14,13 +14,14 @@ const stages: Array<{ value: NonNullable<InquiryRecord["leadStage"]>; label: str
   { value: "counseling", label: "Counseling" },
   { value: "documents", label: "Documents" },
   { value: "applied", label: "Applied" },
+  { value: "offer", label: "Offer" },
   { value: "visa", label: "Visa" },
-  { value: "converted", label: "Converted" },
+  { value: "enrolled", label: "Enrolled" },
   { value: "lost", label: "Lost" },
 ];
 
 function stageFor(inquiry: InquiryRecord): NonNullable<InquiryRecord["leadStage"]> {
-  return inquiry.leadStage || (inquiry.status === "resolved" ? "converted" : inquiry.status === "contacted" ? "contacted" : "new");
+  return inquiry.leadStage || (inquiry.status === "resolved" ? "enrolled" : inquiry.status === "contacted" ? "contacted" : "new");
 }
 
 export default function AdminPipelinePage() {

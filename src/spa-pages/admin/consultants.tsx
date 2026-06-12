@@ -12,6 +12,7 @@ import {
   deleteConsultant,
   listConsultants,
   updateConsultant,
+  uploadImageFile,
   type ConsultantRecord,
 } from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,6 +64,7 @@ export default function AdminConsultantsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const form = useForm<ConsultantForm>({
     resolver: zodResolver(consultantSchema),
@@ -151,6 +153,20 @@ export default function AdminConsultantsPage() {
     }
   };
 
+  const handleImageUpload = async (file: File | null) => {
+    if (!file) return;
+    setIsUploadingImage(true);
+    try {
+      const uploaded = await uploadImageFile(file, { category: "consultant" });
+      form.setValue("imageUrl", uploaded.url, { shouldDirty: true, shouldValidate: true });
+      toast({ title: "Consultant image uploaded" });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "Failed to upload image", variant: "destructive" });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   if (isLoading) return <AdminLayout><div className="p-8">Loading...</div></AdminLayout>;
 
   return (
@@ -187,7 +203,17 @@ export default function AdminConsultantsPage() {
                   </div>
 
                   <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                    <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://..." {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem>
+                      <FormLabel>Consultant Photo</FormLabel>
+                      <FormControl>
+                        <div className="space-y-3">
+                          <Input type="file" accept="image/*" disabled={isUploadingImage} onChange={(event) => handleImageUpload(event.target.files?.[0] || null)} />
+                          {field.value && <img src={field.value} alt="Consultant preview" className="h-32 w-32 rounded-full object-cover" />}
+                          <Input type="hidden" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )} />
                   <FormField control={form.control} name="bio" render={({ field }) => (
                     <FormItem><FormLabel>Bio</FormLabel><FormControl><Textarea rows={4} {...field} /></FormControl><FormMessage /></FormItem>
