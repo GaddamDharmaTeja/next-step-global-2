@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { MongoClient, type Collection } from "mongodb";
 
-export type UserRole = "user" | "admin" | "owner";
+export type UserRole = "user" | "admin" | "manager" | "owner";
 export type InquiryStatus = "pending" | "contacted" | "resolved";
 export type LeadStage = "new" | "contacted" | "counseling" | "documents" | "applied" | "offer" | "visa" | "enrolled" | "lost";
 export type AppointmentStatus = "requested" | "scheduled" | "completed" | "cancelled";

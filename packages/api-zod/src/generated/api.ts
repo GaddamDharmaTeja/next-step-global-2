@@ -23,7 +23,7 @@ export const GetMyProfileResponse = zod.object({
   email: zod.string(),
   name: zod.string().nullish(),
   phone: zod.string().nullish(),
-  role: zod.enum(["user", "admin", "owner"]),
+  role: zod.enum(["user", "admin", "manager", "owner"]),
   createdAt: zod.string(),
 });
 
@@ -36,7 +36,7 @@ export const ListUsersResponseItem = zod.object({
   email: zod.string(),
   name: zod.string().nullish(),
   phone: zod.string().nullish(),
-  role: zod.enum(["user", "admin", "owner"]),
+  role: zod.enum(["user", "admin", "manager", "owner"]),
   createdAt: zod.string(),
 });
 export const ListUsersResponse = zod.array(ListUsersResponseItem);
@@ -49,7 +49,7 @@ export const UpdateUserRoleParams = zod.object({
 });
 
 export const UpdateUserRoleBody = zod.object({
-  role: zod.enum(["user", "admin", "owner"]),
+  role: zod.enum(["user", "admin", "manager", "owner"]),
 });
 
 export const UpdateUserRoleResponse = zod.object({
@@ -58,7 +58,7 @@ export const UpdateUserRoleResponse = zod.object({
   email: zod.string(),
   name: zod.string().nullish(),
   phone: zod.string().nullish(),
-  role: zod.enum(["user", "admin", "owner"]),
+  role: zod.enum(["user", "admin", "manager", "owner"]),
   createdAt: zod.string(),
 });
 

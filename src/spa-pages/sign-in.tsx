@@ -32,7 +32,7 @@ export default function SignInPage() {
       const user = await signIn(values);
       await queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
       toast({ title: "Signed in successfully" });
-      setLocation(user.role === "admin" ? "/admin" : "/user-portal");
+      setLocation(user.role === "admin" || user.role === "manager" || user.role === "owner" ? "/admin" : "/user-portal");
     } catch (error) {
       toast({
         title: error instanceof Error ? error.message : "Failed to sign in",

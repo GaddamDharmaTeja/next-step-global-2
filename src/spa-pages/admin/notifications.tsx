@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Send } from "lucide-react";
+import { KeyRound, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { listNotificationTemplates } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -85,6 +85,16 @@ export default function AdminNotificationsPage() {
 
   const channel = form.watch("channel");
 
+  const generateOtp = () => {
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    form.setValue("subject", "Your NextStep verification code");
+    form.setValue(
+      "message",
+      `Your NextStep verification code is ${code}. This code is valid for 10 minutes. Do not share it with anyone.`,
+    );
+    toast({ title: "OTP generated" });
+  };
+
   const loadTemplate = (templateId: string) => {
     const template = templates.find((entry) => entry.id === templateId);
     if (!template) return;
@@ -123,6 +133,11 @@ export default function AdminNotificationsPage() {
             )}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <Button type="button" variant="outline" className="w-full" onClick={generateOtp}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Generate OTP Message
+                </Button>
+
                 <FormField control={form.control} name="channel" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Channel</FormLabel>

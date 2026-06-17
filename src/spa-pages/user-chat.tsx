@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGetMyProfile } from "@workspace/api-client-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Redirect } from "wouter";
-import { ArrowLeft, MessageCircle, Paperclip, Search, Send, Smile, UsersRound } from "lucide-react";
+import { ArrowLeft, MessageCircle, Search, Send, UsersRound } from "lucide-react";
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
   createChatConversation,
-  listConsultants,
   listChatConversations,
   listChatUsers,
   sendChatMessage,
@@ -37,6 +36,21 @@ function lastPreview(conversation: ChatConversationRecord) {
   return conversation.lastMessage?.body || (conversation.type === "group" ? `${conversation.members.length} members` : "Start a conversation");
 }
 
+function roleLabel(role: string) {
+  if (role === "manager") return "Manager";
+  if (role === "admin") return "Admin";
+  return "Student";
+}
+
+function isAdminOrManager(role: string) {
+  return role === "admin" || role === "manager";
+}
+
+function isVisibleUserConversation(conversation: ChatConversationRecord, currentUserId: string) {
+  const otherMembers = conversation.members.filter((member) => member.id !== currentUserId);
+  return otherMembers.length > 0 && otherMembers.every((member) => isAdminOrManager(member.role));
+}
+
 export default function UserChatPage() {
   const { data: profile, isLoading } = useGetMyProfile({
     query: { retry: false, refetchOnWindowFocus: false } as any,
@@ -48,7 +62,6 @@ export default function UserChatPage() {
     refetchInterval: 3000,
   });
   const { data: users = [] } = useQuery({ queryKey: ["/api/chat/users"], queryFn: listChatUsers, enabled: Boolean(profile) });
-  const { data: consultants = [] } = useQuery({ queryKey: ["/api/consultants"], queryFn: listConsultants, enabled: Boolean(profile) });
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -63,11 +76,13 @@ export default function UserChatPage() {
     return <Redirect to="/sign-in" />;
   }
 
-  if (profile.role === "admin" || profile.role === "owner") {
+  if (profile.role === "admin" || profile.role === "manager" || profile.role === "owner") {
     return <Redirect to="/admin/chats" />;
   }
 
-  const filteredConversations = conversations.filter((conversation) => {
+  const allowedConversations = conversations.filter((conversation) => isVisibleUserConversation(conversation, profile.id));
+
+  const filteredConversations = allowedConversations.filter((conversation) => {
     const needle = search.trim().toLowerCase();
     if (!needle) return true;
     return [
@@ -79,6 +94,7 @@ export default function UserChatPage() {
   });
 
   const filteredUsers = users.filter((user) => {
+    if (!isAdminOrManager(user.role)) return false;
     const needle = search.trim().toLowerCase();
     if (!needle) return true;
     return `${user.name || ""} ${user.email} ${user.role}`.toLowerCase().includes(needle);
@@ -159,36 +175,24 @@ export default function UserChatPage() {
               );
             })}
 
-            <div className="px-4 pb-3 pt-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Start Direct Chat</div>
+            <div className="px-4 pb-3 pt-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Admin Team</div>
             {filteredUsers.length === 0 && (
               <div className="mx-4 mb-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                No login users are available to message yet. Ask the owner to create a user account for a counselor, admin, or consultant.
+                No admin team members are available to message yet. Ask the owner to create an admin or manager login.
               </div>
             )}
             {filteredUsers.map((user) => (
               <button key={user.id} type="button" onClick={() => startDirectChat(user)} className="flex w-full gap-3 border-b border-slate-100 px-4 py-3 text-left transition hover:bg-slate-50">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg font-semibold text-slate-600">{initials(user.name || user.email)}</div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[15px] font-semibold text-slate-950">{user.name || user.email}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="truncate text-[15px] font-semibold text-slate-950">{user.name || user.email}</div>
+                    <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">{roleLabel(user.role)}</span>
+                  </div>
                   <div className="truncate text-sm text-slate-500">{user.email}</div>
                 </div>
               </button>
             ))}
-            {consultants.length > 0 && (
-              <>
-                <div className="px-4 pb-3 pt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Consultants</div>
-                {consultants.map((consultant) => (
-                  <div key={consultant.id} className="flex gap-3 border-b border-slate-100 px-4 py-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-50 text-lg font-semibold text-amber-700">{initials(consultant.name)}</div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[15px] font-semibold text-slate-950">{consultant.name}</div>
-                      <div className="truncate text-sm text-slate-500">{consultant.role}</div>
-                      <div className="mt-1 text-xs text-amber-700">Create a login user for this consultant to enable chat.</div>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
           </div>
         </aside>
 
@@ -226,12 +230,6 @@ export default function UserChatPage() {
 
               <div className="border-t border-slate-200 bg-[#f0f2f5] p-4">
                 <div className="flex items-end gap-3">
-                  <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0 rounded-full text-[#54656f]" aria-label="Attach file">
-                    <Paperclip className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0 rounded-full text-[#54656f]" aria-label="Add emoji">
-                    <Smile className="h-5 w-5" />
-                  </Button>
                   <Textarea rows={1} value={messageBody} onChange={(event) => setMessageBody(event.target.value)} placeholder="Type a message" className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border-0 bg-white px-4 py-3 shadow-none focus-visible:ring-1 focus-visible:ring-[#25d366]" />
                   <Button onClick={sendMessage} disabled={!messageBody.trim()} size="icon" className="h-11 w-11 shrink-0 rounded-full bg-[#00a884] hover:bg-[#008069]" aria-label="Send message">
                     <Send className="h-5 w-5" />

@@ -25,7 +25,7 @@ router.get("/stats", requireAdmin, async (req, res): Promise<void> => {
     }, {});
     const approvedDocuments = store.studentDocuments.filter((entry) => entry.status === "approved").length;
     const counselorWorkload = store.users
-      .filter((user) => user.role === "admin" || user.role === "owner")
+      .filter((user) => user.role === "admin" || user.role === "manager" || user.role === "owner")
       .map((user) => ({
         userId: user.id,
         name: user.name || user.email,

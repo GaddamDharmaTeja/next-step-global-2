@@ -250,7 +250,7 @@ router.patch("/:userId/profile", requireOwner, async (req, res): Promise<void> =
     const updated = await updateStore((store) => {
       const user = store.users.find((entry) => entry.id === userId || entry.clerkId === userId);
       if (!user || !user.passwordHash) return null;
-      if (user.role === "admin" || user.role === "owner") return "protected-role" as const;
+      if (user.role === "admin" || user.role === "manager" || user.role === "owner") return "protected-role" as const;
 
       if (positionId !== undefined) {
         const position = store.userPositions.find((entry) => entry.id === positionId);

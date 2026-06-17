@@ -16,7 +16,7 @@ router.get("/", requireOwner, async (req, res): Promise<void> => {
 
 router.post("/", requireOwner, async (req, res): Promise<void> => {
   const email = typeof req.body?.email === "string" ? normalizeEmail(req.body.email) : "";
-  const role = req.body?.role === "owner" ? "owner" : req.body?.role === "admin" ? "admin" : null;
+  const role = req.body?.role === "owner" ? "owner" : req.body?.role === "manager" ? "manager" : req.body?.role === "admin" ? "admin" : null;
 
   if (!email || !email.includes("@") || !role) {
     res.status(400).json({ error: "Valid email and role are required" });

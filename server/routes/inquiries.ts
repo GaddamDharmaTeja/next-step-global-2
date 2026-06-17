@@ -147,7 +147,7 @@ router.patch("/:inquiryId/lead", requireAdmin, async (req, res): Promise<void> =
     if (programLevel !== undefined) inquiry.programLevel = (programLevel || null) as ProgramLevel | null;
     if (intake !== undefined) inquiry.intake = intake || null;
     if (assignedToUserId !== undefined) {
-      const assignee = assignedToUserId ? store.users.find((entry) => entry.id === assignedToUserId && (entry.role === "admin" || entry.role === "owner")) : null;
+      const assignee = assignedToUserId ? store.users.find((entry) => entry.id === assignedToUserId && (entry.role === "admin" || entry.role === "manager" || entry.role === "owner")) : null;
       inquiry.assignedToUserId = assignee?.id || null;
       inquiry.assignedToName = assignee?.name || assignee?.email || null;
     }

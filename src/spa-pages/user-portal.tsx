@@ -124,7 +124,7 @@ export default function UserPortalPage() {
     return <Redirect to="/sign-in" />;
   }
 
-  if (profile.role === "admin" || profile.role === "owner") {
+  if (profile.role === "admin" || profile.role === "manager" || profile.role === "owner") {
     return <Redirect to="/admin" />;
   }
 

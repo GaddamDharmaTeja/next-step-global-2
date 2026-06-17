@@ -80,7 +80,7 @@ router.patch("/:appointmentId", requireAdmin, async (req, res): Promise<void> =>
     }
     if (meetingType !== undefined) appointment.meetingType = meetingType as any;
     if (assignedToUserId !== undefined) {
-      const assignee = store.users.find((user) => user.id === assignedToUserId && (user.role === "admin" || user.role === "owner"));
+      const assignee = store.users.find((user) => user.id === assignedToUserId && (user.role === "admin" || user.role === "manager" || user.role === "owner"));
       appointment.assignedToUserId = assignee?.id ?? null;
       appointment.assignedToName = assignee ? assignee.name || assignee.email : null;
     }

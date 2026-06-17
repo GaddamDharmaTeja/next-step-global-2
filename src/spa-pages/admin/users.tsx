@@ -11,6 +11,7 @@ import { deleteUser } from "@/lib/api";
 
 const roleTone = {
   owner: "bg-amber-100 text-amber-900 border-amber-200",
+  manager: "bg-violet-100 text-violet-900 border-violet-200",
   admin: "bg-sky-100 text-sky-900 border-sky-200",
   user: "bg-slate-100 text-slate-800 border-slate-200",
 } as const;

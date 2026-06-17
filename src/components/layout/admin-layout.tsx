@@ -32,7 +32,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: menuAccess } = useQuery({
     queryKey: ["/api/role-menu-access"],
     queryFn: getRoleMenuAccess,
-    enabled: profile?.role === "admin" || profile?.role === "owner",
+    enabled: profile?.role === "admin" || profile?.role === "manager" || profile?.role === "owner",
   });
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -46,7 +46,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     return <Redirect to="/sign-in" />;
   }
 
-  if (profile.role !== "admin" && profile.role !== "owner") {
+  if (profile.role !== "admin" && profile.role !== "manager" && profile.role !== "owner") {
     return <Redirect to="/user-portal" />;
   }
 
@@ -89,7 +89,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   const visibleNavItems =
-    profile.role === "owner"
+    profile.role === "owner" || profile.role === "manager"
       ? navItems
       : navItems.filter((item) => (menuAccess?.admin || []).includes(item.id));
 
@@ -99,6 +99,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     .find((item) => location.startsWith(item.href)) || navItems.find((item) => item.href === location);
   const canAccessCurrentPage =
     profile.role === "owner" ||
+    profile.role === "manager" ||
     !currentNavItem ||
     (menuAccess?.admin || []).includes(currentNavItem.id);
 
@@ -150,13 +151,18 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-5">
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
+            const isActive = currentNavItem?.id === item.id;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 hover:text-white"
+                className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition ${
+                  isActive
+                    ? "bg-white/15 text-white shadow-[inset_3px_0_0_#f0d28c]"
+                    : "text-slate-200 hover:bg-white/10 hover:text-white"
+                }`}
               >
-                <div className="rounded-md bg-white/10 p-2 text-slate-200 transition group-hover:bg-white/15 group-hover:text-white">
+                <div className={`rounded-md p-2 transition group-hover:bg-white/15 group-hover:text-white ${isActive ? "bg-white/20 text-[#f0d28c]" : "bg-white/10 text-slate-200"}`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <span>{item.label}</span>

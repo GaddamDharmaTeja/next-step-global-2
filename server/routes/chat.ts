@@ -15,7 +15,25 @@ function publicUser(user: UserRecord) {
 }
 
 function canAccessConversation(user: UserRecord, conversation: ChatConversationRecord) {
-  return user.role === "admin" || user.role === "owner" || conversation.memberUserIds.includes(user.id);
+  return conversation.memberUserIds.includes(user.id);
+}
+
+function isAdminSideRole(user: UserRecord) {
+  return user.role === "admin" || user.role === "manager" || user.role === "owner";
+}
+
+function isStudentVisibleContact(user: UserRecord) {
+  return user.role === "admin" || user.role === "manager";
+}
+
+function isVisibleConversationForUser(store: Awaited<ReturnType<typeof readStore>>, user: UserRecord, conversation: ChatConversationRecord) {
+  if (!conversation.memberUserIds.includes(user.id)) return false;
+  if (isAdminSideRole(user)) return true;
+  const otherMembers = conversation.memberUserIds
+    .filter((userId) => userId !== user.id)
+    .map((userId) => store.users.find((entry) => entry.id === userId))
+    .filter((entry): entry is UserRecord => Boolean(entry));
+  return otherMembers.length > 0 && otherMembers.every(isStudentVisibleContact);
 }
 
 function conversationPayload(store: Awaited<ReturnType<typeof readStore>>, conversation: ChatConversationRecord) {
@@ -42,13 +60,18 @@ function uniqueUserIds(ids: unknown[]) {
 
 router.get("/users", requireAuth, async (req, res): Promise<void> => {
   const store = await readStore();
-  res.json(store.users.filter((user) => user.id !== req.authUser!.id).map(publicUser));
+  const users = store.users
+    .filter((user) => user.id !== req.authUser!.id)
+    .filter((user) => (isAdminSideRole(req.authUser!) ? true : isStudentVisibleContact(user)))
+    .map(publicUser);
+  res.json(users);
 });
 
 router.get("/conversations", requireAuth, async (req, res): Promise<void> => {
   const store = await readStore();
   const conversations = store.chatConversations
     .filter((conversation) => canAccessConversation(req.authUser!, conversation))
+    .filter((conversation) => isVisibleConversationForUser(store, req.authUser!, conversation))
     .map((conversation) => conversationPayload(store, conversation))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 

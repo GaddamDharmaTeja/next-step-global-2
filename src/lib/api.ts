@@ -13,7 +13,7 @@ export interface SessionUser {
   email: string;
   name?: string | null;
   phone?: string | null;
-  role: "user" | "admin" | "owner";
+  role: "user" | "admin" | "manager" | "owner";
   positionId?: string | null;
   positionName?: string | null;
   reportsToUserId?: string | null;
@@ -35,7 +35,7 @@ export interface AuditLogRecord {
   id: string;
   actorUserId?: string | null;
   actorName: string;
-  actorRole: "user" | "admin" | "owner" | "system";
+  actorRole: "user" | "admin" | "manager" | "owner" | "system";
   action: string;
   entityType: string;
   entityId: string;
@@ -46,7 +46,7 @@ export interface AuditLogRecord {
 export interface AdminInviteRecord {
   id: string;
   email: string;
-  role: "admin" | "owner";
+  role: "admin" | "manager" | "owner";
   status: "pending" | "accepted" | "revoked";
   invitedByUserId?: string | null;
   invitedByName: string;
@@ -114,7 +114,7 @@ export interface MessageRecord {
   studentUserId?: string | null;
   senderUserId?: string | null;
   senderName: string;
-  senderRole: "user" | "admin" | "owner" | "system";
+  senderRole: "user" | "admin" | "manager" | "owner" | "system";
   body: string;
   createdAt: string;
 }
@@ -123,7 +123,7 @@ export interface ChatUserRecord {
   id: string;
   email: string;
   name?: string | null;
-  role: "user" | "admin" | "owner";
+  role: "user" | "admin" | "manager" | "owner";
   createdAt: string;
 }
 
@@ -132,7 +132,7 @@ export interface ChatMessageRecord {
   conversationId: string;
   senderUserId?: string | null;
   senderName: string;
-  senderRole: "user" | "admin" | "owner" | "system";
+  senderRole: "user" | "admin" | "manager" | "owner" | "system";
   body: string;
   createdAt: string;
 }
@@ -692,7 +692,7 @@ export async function listAdminInvites() {
   return request<AdminInviteRecord[]>("/api/admin-invites", { method: "GET" });
 }
 
-export async function createAdminInvite(payload: { email: string; role: "admin" | "owner" }) {
+export async function createAdminInvite(payload: { email: string; role: "admin" | "manager" | "owner" }) {
   return request<AdminInviteRecord>("/api/admin-invites", {
     method: "POST",
     body: JSON.stringify(payload),

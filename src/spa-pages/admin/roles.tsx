@@ -6,7 +6,7 @@ import {
   useListUsers,
   useUpdateUserRole,
 } from "@workspace/api-client-react";
-import { Crown, Network, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
+import { Crown, Network, ShieldCheck, Sparkles, UserCog, UserRound, UsersRound } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,12 @@ const roleMeta = {
     tone: "bg-sky-100 text-sky-900 border-sky-200",
     icon: ShieldCheck,
   },
+  manager: {
+    label: "Manager",
+    description: "Senior admin-side access for team leads, counselors, and internal coordinators.",
+    tone: "bg-violet-100 text-violet-900 border-violet-200",
+    icon: UserCog,
+  },
   user: {
     label: "User",
     description: "Student portal access for personal inquiries, documents, and recommendations.",
@@ -104,7 +110,7 @@ export default function AdminRolesPage() {
   const { toast } = useToast();
   const canManageRoles = profile?.role === "owner";
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"admin" | "owner">("admin");
+  const [inviteRole, setInviteRole] = useState<"admin" | "manager" | "owner">("admin");
   const [positionName, setPositionName] = useState("");
   const [positionLevel, setPositionLevel] = useState("3");
   const [positionDescription, setPositionDescription] = useState("");
@@ -112,6 +118,7 @@ export default function AdminRolesPage() {
   const selectedUserPortalSections = menuAccess?.userPortal || [];
   const safeUsers = users ?? [];
   const ownerCount = safeUsers.filter((user) => user.role === "owner").length;
+  const managerCount = safeUsers.filter((user) => user.role === "manager").length;
   const adminCount = safeUsers.filter((user) => user.role === "admin").length;
   const memberCount = safeUsers.filter((user) => user.role === "user").length;
   const assignableUsers = safeUsers.filter((user) => user.role === "user");
@@ -123,7 +130,7 @@ export default function AdminRolesPage() {
     }
 
     updateUserRole.mutate(
-      { userId, data: { role: role as "user" | "admin" | "owner" } },
+      { userId, data: { role: role as "user" | "admin" | "manager" | "owner" } },
       {
         onSuccess: () => {
           toast({ title: "User role updated" });
@@ -232,10 +239,14 @@ export default function AdminRolesPage() {
                 Role changes are owner-only, with safeguards so the last owner cannot be removed.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3 lg:w-[360px] lg:grid-cols-1">
+            <div className="grid gap-3 sm:grid-cols-4 lg:w-[420px] lg:grid-cols-2">
               <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
                 <div className="text-sm text-slate-300">Owners</div>
                 <div className="mt-3 text-3xl font-semibold">{ownerCount}</div>
+              </div>
+              <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="text-sm text-slate-300">Managers</div>
+                <div className="mt-3 text-3xl font-semibold">{managerCount}</div>
               </div>
               <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
                 <div className="text-sm text-slate-300">Admins</div>
@@ -254,8 +265,8 @@ export default function AdminRolesPage() {
             <CardHeader className="border-b border-slate-200/70 pb-5">
               <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">Permission Layers</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 pt-6 md:grid-cols-3">
-              {(["owner", "admin", "user"] as const).map((role) => {
+            <CardContent className="grid gap-4 pt-6 md:grid-cols-4">
+              {(["owner", "manager", "admin", "user"] as const).map((role) => {
                 const meta = roleMeta[role];
                 const Icon = meta.icon;
                 return (
@@ -278,9 +289,10 @@ export default function AdminRolesPage() {
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 <Input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="Invite email" className="h-12 rounded-xl" />
-                <Select value={inviteRole} onValueChange={(value) => setInviteRole(value as "admin" | "owner")}>
+                <Select value={inviteRole} onValueChange={(value) => setInviteRole(value as "admin" | "manager" | "owner")}>
                   <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="manager">Manager Invite</SelectItem>
                     <SelectItem value="admin">Admin Invite</SelectItem>
                     <SelectItem value="owner">Owner Invite</SelectItem>
                   </SelectContent>
@@ -295,7 +307,7 @@ export default function AdminRolesPage() {
               <CardHeader className="border-b border-slate-200/70 pb-5">
                 <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">Owner Required</CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 text-sm leading-7 text-slate-600">Only owners can change roles or create admin/owner invites.</CardContent>
+              <CardContent className="pt-6 text-sm leading-7 text-slate-600">Only owners can change roles or create manager/admin/owner invites.</CardContent>
             </Card>
           )}
         </div>
@@ -365,7 +377,7 @@ export default function AdminRolesPage() {
                 <CardTitle className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-slate-900">
                   <Network className="h-5 w-5" /> Create User Type / Position
                 </CardTitle>
-                <p className="mt-2 text-sm text-slate-600">Owner-created positions can be assigned only to normal users, never admins or owners.</p>
+                <p className="mt-2 text-sm text-slate-600">Owner-created positions can be assigned only to normal users, never managers, admins, or owners.</p>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 <Input value={positionName} onChange={(event) => setPositionName(event.target.value)} placeholder="Position name, e.g. Junior Counselor" className="h-12 rounded-xl" />
@@ -380,7 +392,7 @@ export default function AdminRolesPage() {
             <Card className="rounded-[1.75rem] border-white/70 bg-white/85 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
               <CardHeader className="border-b border-slate-200/70 pb-5">
                 <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">Assign User Types</CardTitle>
-                <p className="mt-2 text-sm text-slate-600">Only regular users are listed here. Admin and owner accounts are intentionally excluded.</p>
+                <p className="mt-2 text-sm text-slate-600">Only regular users are listed here. Manager, admin, and owner accounts are intentionally excluded.</p>
               </CardHeader>
               <CardContent className="space-y-3 pt-6">
                 {assignableUsers.length === 0 && <div className="rounded-xl border border-dashed p-5 text-sm text-slate-500">No normal users available for assignment.</div>}
@@ -411,7 +423,7 @@ export default function AdminRolesPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">Assign Roles</CardTitle>
-                <p className="mt-2 text-sm text-slate-600">Change a user between user, admin, and owner.</p>
+                <p className="mt-2 text-sm text-slate-600">Change a user between user, admin, manager, and owner.</p>
               </div>
               <div className="rounded-2xl bg-slate-100 p-3 text-slate-700"><UsersRound className="h-5 w-5" /></div>
             </div>
@@ -440,6 +452,7 @@ export default function AdminRolesPage() {
                         <SelectContent>
                           <SelectItem value="user">User</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="manager">Manager</SelectItem>
                           <SelectItem value="owner">Owner</SelectItem>
                         </SelectContent>
                       </Select>

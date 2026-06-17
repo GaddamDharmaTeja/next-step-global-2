@@ -32,9 +32,9 @@ export default function SignUpPage() {
       const user = await signUp(values);
       await queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
       toast({
-        title: user.role === "owner" ? "Owner account created" : user.role === "admin" ? "Account created with admin access" : "Account created successfully",
+        title: user.role === "owner" ? "Owner account created" : user.role === "manager" ? "Account created with manager access" : user.role === "admin" ? "Account created with admin access" : "Account created successfully",
       });
-      setLocation(user.role === "admin" || user.role === "owner" ? "/admin" : "/user-portal");
+      setLocation(user.role === "admin" || user.role === "manager" || user.role === "owner" ? "/admin" : "/user-portal");
     } catch (error) {
       toast({
         title: error instanceof Error ? error.message : "Failed to create account",
