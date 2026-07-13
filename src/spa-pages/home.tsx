@@ -150,7 +150,11 @@ export default function HomePage() {
   const testimonialsList = Array.isArray(testimonials) ? testimonials : [];
   const galleryList = Array.isArray(gallery) ? gallery : [];
 
-  const featuredPrograms = programsList.filter((p) => p.featured) || programsList.slice(0, 3) || [];
+  const pinnedPrograms = programsList.filter((p) => p.featured);
+  const featuredPrograms = [
+    ...pinnedPrograms,
+    ...programsList.filter((p) => !pinnedPrograms.some((featured) => featured.id === p.id)),
+  ].slice(0, 3);
   const featuredTestimonials = testimonialsList.filter((t) => t.featured) || testimonialsList.slice(0, 3) || [];
   const metrics = Array.isArray(content?.metrics) ? content.metrics : [];
   const serviceIcons = [HandHeart, Globe2, ShieldCheck];
