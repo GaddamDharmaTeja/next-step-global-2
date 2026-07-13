@@ -3,12 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PublicHeader } from "@/components/layout/public-header";
 import { getDestination, listDestinations } from "@/lib/api";
-import { withBasePath } from "@/lib/runtime";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   BadgeDollarSign,
-  BookOpenCheck,
   CheckCircle2,
   FileText,
   Globe2,

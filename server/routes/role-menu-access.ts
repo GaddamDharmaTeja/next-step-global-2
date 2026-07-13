@@ -6,6 +6,7 @@ const router = Router();
 
 const allowedMenuIds = new Set([
   "dashboard",
+  "pages",
   "content",
   "inquiries",
   "pipeline",
@@ -14,6 +15,7 @@ const allowedMenuIds = new Set([
   "programs",
   "countries",
   "gallery",
+  "media",
   "testimonials",
   "users",
   "roles",
@@ -23,9 +25,10 @@ const allowedMenuIds = new Set([
   "documents",
   "settings",
   "auditLogs",
+  "checklists",
 ]);
 
-const allowedUserPortalIds = new Set(["hero", "profile", "inquiries", "programs", "documents", "appointments", "scholarships", "messages"]);
+const allowedUserPortalIds = new Set(["hero", "profile", "inquiries", "programs", "documents", "appointments", "messages"]);
 
 function cleanMenuIds(value: unknown): string[] {
   if (!Array.isArray(value)) return [];

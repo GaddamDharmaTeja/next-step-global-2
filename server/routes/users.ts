@@ -116,6 +116,20 @@ router.post("/login", async (req, res): Promise<void> => {
       return;
     }
 
+    await updateStore((store) => {
+      store.auditLogs.unshift(
+        createAuditLogEntry({
+          actorUserId: user.id,
+          actorName: user.name || user.email,
+          actorRole: user.role,
+          action: "auth.login",
+          entityType: "login",
+          entityId: user.id,
+          summary: `Login activity for ${user.email}`,
+        }),
+      );
+    });
+
     setSessionCookie(res, user);
     res.json(toPublicUser(user));
   } catch (err) {

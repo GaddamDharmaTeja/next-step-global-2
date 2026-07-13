@@ -8,7 +8,7 @@ export default function AboutPage() {
   const metrics = Array.isArray(content?.metrics) ? content.metrics : [];
   const aboutHighlights = Array.isArray(content?.aboutHighlights) && content.aboutHighlights.length
     ? content.aboutHighlights
-    : ["Course shortlisting", "Scholarship strategy", "Visa documentation", "Pre-departure briefing"];
+    : ["Course shortlisting", "Funding strategy", "Visa documentation", "Pre-departure briefing"];
 
   return (
     <div className="modern-page-shell">
@@ -24,7 +24,7 @@ export default function AboutPage() {
             {content?.aboutTitle || "Built for serious study abroad decisions."}
           </h1>
           <p className="mt-6 max-w-4xl text-xl leading-8 text-slate-600">
-            {content?.aboutText || "Our counseling process blends destination research, admission strategy, scholarship planning, and visa preparation into one guided path."}
+            {content?.aboutText || "Our counseling process blends destination research, admission strategy, funding planning, and visa preparation into one guided path."}
           </p>
         </div>
       </section>

@@ -15,6 +15,7 @@ import {
   uploadImageFile,
   type ConsultantRecord,
 } from "@/lib/api";
+import { assetUrl } from "@/lib/runtime";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Trash2 } from "lucide-react";
@@ -195,7 +196,7 @@ export default function AdminConsultantsPage() {
                       <FormItem><FormLabel>Role</FormLabel><FormControl><Input placeholder="Senior Education Consultant" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="specialty" render={({ field }) => (
-                      <FormItem><FormLabel>Specialty</FormLabel><FormControl><Input placeholder="Canada and scholarships" {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel>Specialty</FormLabel><FormControl><Input placeholder="Canada and visa planning" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="experience" render={({ field }) => (
                       <FormItem><FormLabel>Experience</FormLabel><FormControl><Input placeholder="12 Years" {...field} /></FormControl><FormMessage /></FormItem>
@@ -208,7 +209,7 @@ export default function AdminConsultantsPage() {
                       <FormControl>
                         <div className="space-y-3">
                           <Input type="file" accept="image/*" disabled={isUploadingImage} onChange={(event) => handleImageUpload(event.target.files?.[0] || null)} />
-                          {field.value && <img src={field.value} alt="Consultant preview" className="h-32 w-32 rounded-full object-cover" />}
+                          {field.value && <img src={assetUrl(field.value)} alt="Consultant preview" className="h-32 w-32 rounded-full object-cover" />}
                           <Input type="hidden" {...field} />
                         </div>
                       </FormControl>
@@ -272,7 +273,7 @@ export default function AdminConsultantsPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-100">
-                        {consultant.imageUrl && <img src={consultant.imageUrl} alt={consultant.name} className="h-full w-full object-cover" />}
+                        {consultant.imageUrl && <img src={assetUrl(consultant.imageUrl)} alt={consultant.name} className="h-full w-full object-cover" />}
                       </div>
                       <div>
                         <div className="font-medium">{consultant.name}</div>

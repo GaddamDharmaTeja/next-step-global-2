@@ -36,14 +36,15 @@ const manageableMenus = [
   { id: "programs", label: "Programs" },
   { id: "countries", label: "Countries" },
   { id: "gallery", label: "Gallery" },
+  { id: "media", label: "Media Manager" },
   { id: "testimonials", label: "Testimonials" },
   { id: "users", label: "Users" },
   { id: "notifications", label: "Notifications" },
   { id: "chats", label: "Chats" },
   { id: "templates", label: "Templates" },
   { id: "documents", label: "Documents" },
-  { id: "scholarships", label: "Scholarships" },
   { id: "checklists", label: "Checklists" },
+  { id: "auditLogs", label: "Audit Logs" },
 ];
 
 const userPortalSections = [
@@ -53,25 +54,24 @@ const userPortalSections = [
   { id: "programs", label: "Recommended Programs" },
   { id: "documents", label: "Document Uploads" },
   { id: "appointments", label: "Consultation Booking" },
-  { id: "scholarships", label: "Scholarship Finder" },
   { id: "messages", label: "Portal Messages" },
 ];
 
 const roleMeta = {
   owner: {
-    label: "Master / Owner",
+    label: "SUPER_ADMIN",
     description: "Full platform access, can promote users, invite admins, and manage owners.",
     tone: "bg-amber-100 text-amber-900 border-amber-200",
     icon: Crown,
   },
   admin: {
-    label: "Admin",
+    label: "ADMIN",
     description: "Operational access to manage student-facing data and workflows.",
     tone: "bg-sky-100 text-sky-900 border-sky-200",
     icon: ShieldCheck,
   },
   manager: {
-    label: "Manager",
+    label: "CONTENT_MANAGER",
     description: "Senior admin-side access for team leads, counselors, and internal coordinators.",
     tone: "bg-violet-100 text-violet-900 border-violet-200",
     icon: UserCog,
@@ -85,9 +85,7 @@ const roleMeta = {
 } as const;
 
 export default function AdminRolesPage() {
-  const { data: profile } = useGetMyProfile({
-    query: { retry: false, refetchOnWindowFocus: false } as any,
-  });
+  const { data: profile } = useGetMyProfile();
   const { data: users, isLoading } = useListUsers();
   const { data: invites = [] } = useQuery({
     queryKey: ["/api/admin-invites"],
@@ -402,7 +400,7 @@ export default function AdminRolesPage() {
                       <div className="font-medium text-slate-900">{user.name || "Unnamed user"}</div>
                       <div className="text-sm text-slate-500">{user.email}</div>
                     </div>
-                    <Select value={(user as any).positionId || "none"} onValueChange={(value) => handlePositionAssign(user.id, value)}>
+                    <Select value={user.positionId || "none"} onValueChange={(value) => handlePositionAssign(user.id, value)}>
                       <SelectTrigger className="rounded-xl"><SelectValue placeholder="User type" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No user type</SelectItem>

@@ -1,5 +1,5 @@
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { useListTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial, getListTestimonialsQueryKey } from "@workspace/api-client-react";
+import { useListTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial, getListTestimonialsQueryKey, type Testimonial } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { uploadImageFile } from "@/lib/api";
+import { assetUrl } from "@/lib/runtime";
 
 const testimonialSchema = z.object({
   studentName: z.string().min(1, "Name required"),
@@ -69,7 +70,7 @@ export default function AdminTestimonialsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleEdit = (t: any) => {
+  const handleEdit = (t: Testimonial) => {
     setEditingId(t.id);
     form.reset({
       studentName: t.studentName,
@@ -151,7 +152,7 @@ export default function AdminTestimonialsPage() {
                         <FormControl>
                           <div className="space-y-3">
                             <Input type="file" accept="image/*" disabled={isUploadingAvatar} onChange={(event) => handleAvatarUpload(event.target.files?.[0] || null)} />
-                            {field.value && <img src={field.value} alt="Avatar preview" className="h-20 w-20 rounded-full object-cover" />}
+                            {field.value && <img src={assetUrl(field.value)} alt="Avatar preview" className="h-20 w-20 rounded-full object-cover" />}
                             <Input type="hidden" {...field} />
                           </div>
                         </FormControl>

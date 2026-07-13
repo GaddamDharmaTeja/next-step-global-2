@@ -28,6 +28,8 @@ export interface UserRecord {
   createdAt: string;
 }
 
+export type AdminUserRecord = UserRecord;
+
 export interface UserPositionRecord {
   id: string;
   name: string;
@@ -80,12 +82,20 @@ export interface ProgramRecord {
 
 export interface GalleryImageRecord {
   id: number;
+  name?: string | null;
   url: string;
   caption: string | null;
   category: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+  uploadedByUserId?: string | null;
+  uploadedByName?: string | null;
   sortOrder: number;
   createdAt: string;
+  updatedAt?: string | null;
 }
+
+export type MediaFileRecord = GalleryImageRecord;
 
 export interface TestimonialRecord {
   id: number;
@@ -192,6 +202,115 @@ export interface SiteContentRecord {
   footerTagline: string;
 }
 
+export type CmsPageStatus = "draft" | "published";
+
+export interface CmsSeoRecord {
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+  seoImage: string | null;
+}
+
+export interface CmsHeroRecord {
+  title: string;
+  subtitle: string;
+  description: string;
+  backgroundImage: string | null;
+  backgroundVideo: string | null;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+  visible: boolean;
+}
+
+export interface CmsSectionRecord {
+  id: string;
+  title: string;
+  subtitle: string;
+  richText: string;
+  images: string[];
+  videos: string[];
+  icons: string[];
+  buttonText: string;
+  buttonLink: string;
+  backgroundColor: string;
+  order: number;
+  enabled: boolean;
+}
+
+export interface CmsCardRecord {
+  id: string;
+  image: string | null;
+  icon: string;
+  title: string;
+  description: string;
+  link: string;
+  order: number;
+  active: boolean;
+}
+
+export interface CmsFaqRecord {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+}
+
+export interface CmsTestimonialRecord {
+  id: string;
+  clientName: string;
+  designation: string;
+  review: string;
+  rating: number;
+  photo: string | null;
+}
+
+export interface CmsGalleryItemRecord {
+  id: string;
+  image: string;
+  caption: string;
+  order: number;
+}
+
+export interface CmsCtaRecord {
+  heading: string;
+  description: string;
+  buttonText: string;
+  buttonLink: string;
+  backgroundColor: string;
+}
+
+export interface CmsVersionRecord {
+  id: string;
+  savedAt: string;
+  savedBy: string;
+  status: CmsPageStatus;
+  title: string;
+}
+
+export interface CmsPageRecord {
+  id: string;
+  title: string;
+  slug: string;
+  url: string;
+  seo: CmsSeoRecord;
+  hero: CmsHeroRecord;
+  sections: CmsSectionRecord[];
+  cards: CmsCardRecord[];
+  faqs: CmsFaqRecord[];
+  testimonials: CmsTestimonialRecord[];
+  gallery: CmsGalleryItemRecord[];
+  cta: CmsCtaRecord;
+  footerText: string;
+  status: CmsPageStatus;
+  scheduledPublishAt: string | null;
+  visible: boolean;
+  versionHistory: CmsVersionRecord[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface OwnerSettingsRecord {
   companyName: string;
   ownerName: string;
@@ -213,6 +332,8 @@ export interface AuditLogRecord {
   summary: string;
   createdAt: string;
 }
+
+export type ActivityLogRecord = AuditLogRecord;
 
 export interface AdminInviteRecord {
   id: string;
@@ -327,6 +448,7 @@ export interface AppStore {
   destinations: DestinationRecord[];
   consultants: ConsultantRecord[];
   siteContent: SiteContentRecord;
+  cmsPages: CmsPageRecord[];
   appointments: AppointmentRecord[];
   ownerSettings: OwnerSettingsRecord;
   auditLogs: AuditLogRecord[];
@@ -433,6 +555,93 @@ function normalizeSiteIntakes(value: unknown, fallback: SiteIntakeRecord[]): Sit
   return normalized.length > 0 ? normalized : fallback;
 }
 
+const nowSeed = "2026-06-01T00:00:00.000Z";
+
+function createSeedCmsPage(input: {
+  title: string;
+  slug: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  description: string;
+  cards?: Array<{ title: string; description: string; icon?: string; link?: string }>;
+}): CmsPageRecord {
+  const url = input.slug === "home" ? "/" : `/${input.slug}`;
+  return {
+    id: `cms-${input.slug}`,
+    title: input.title,
+    slug: input.slug,
+    url,
+    seo: {
+      metaTitle: `${input.title} | NextStep Global`,
+      metaDescription: input.description,
+      metaKeywords: `NextStep Global, ${input.title}, study abroad, education services`,
+      seoImage: "/nextstep-logo.png",
+    },
+    hero: {
+      title: input.heroTitle,
+      subtitle: input.heroSubtitle,
+      description: input.description,
+      backgroundImage: input.slug === "home" ? "/hero-student.jpg" : null,
+      backgroundVideo: null,
+      primaryButtonText: "Ask an Advisor",
+      primaryButtonLink: "/contact",
+      secondaryButtonText: "Explore Programs",
+      secondaryButtonLink: "/programs",
+      visible: true,
+    },
+    sections: [
+      {
+        id: `section-${input.slug}-overview`,
+        title: input.title,
+        subtitle: input.heroSubtitle,
+        richText: input.description,
+        images: [],
+        videos: [],
+        icons: [],
+        buttonText: "Talk to Advisor",
+        buttonLink: "/contact",
+        backgroundColor: "#ffffff",
+        order: 1,
+        enabled: true,
+      },
+    ],
+    cards: (input.cards || []).map((card, index) => ({
+      id: `card-${input.slug}-${index + 1}`,
+      image: null,
+      icon: card.icon || "Globe",
+      title: card.title,
+      description: card.description,
+      link: card.link || "/contact",
+      order: index + 1,
+      active: true,
+    })),
+    faqs: [
+      {
+        id: `faq-${input.slug}-1`,
+        question: `How can NextStep Global help with ${input.title.toLowerCase()}?`,
+        answer: "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+        order: 1,
+      },
+    ],
+    testimonials: [],
+    gallery: [],
+    cta: {
+      heading: "Not sure what to choose?",
+      description: "Our experts can help you compare options and create a practical application roadmap.",
+      buttonText: "Talk to Advisor",
+      buttonLink: "/contact",
+      backgroundColor: "#07162f",
+    },
+    footerText: "NextStep Global Educational Services helps students plan practical international education pathways.",
+    status: "published",
+    scheduledPublishAt: null,
+    visible: true,
+    versionHistory: [],
+    createdAt: nowSeed,
+    updatedAt: nowSeed,
+  };
+}
+
 const seedStore: AppStore = {
   users: [
     {
@@ -513,11 +722,11 @@ const seedStore: AppStore = {
       id: 1,
       name: "Priya Sharma",
       role: "Senior Education Consultant",
-      specialty: "Canada and scholarship planning",
+      specialty: "Canada and visa planning",
       experience: "12 Years",
       imageUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop",
       bio:
-        "Priya helps students match their academic profile with Canadian universities, scholarship options, and post-study pathways.",
+        "Priya helps students match their academic profile with Canadian universities, funding options, and post-study pathways.",
       countries: ["Canada", "United Kingdom"],
       languages: ["English", "Hindi", "Telugu"],
       featured: true,
@@ -666,7 +875,7 @@ const seedStore: AppStore = {
         "English-taught degree options",
         "Schengen travel exposure",
         "Strong research and innovation hubs",
-        "Multiple scholarship routes",
+        "Multiple funding routes",
       ],
       universities: ["Technical University of Munich", "KU Leuven", "University of Amsterdam", "Sorbonne University", "Lund University"],
       tuition: "EUR 5,000 - 25,000/year",
@@ -716,15 +925,15 @@ const seedStore: AppStore = {
     ],
     mentorshipTitle: "Our Services",
     mentorshipSubtitle:
-      "We guide students through admissions, scholarship planning, visa preparation, and financial documentation with practical support at every step.",
+      "We guide students through admissions, funding planning, visa preparation, and financial documentation with practical support at every step.",
     services: [
       {
         title: "College & University Admission",
         text: "College and university admission processes are simplified with expert guidance.",
       },
       {
-        title: "Scholarship Assistance",
-        text: "Scholarship assistance helps students identify financial support for international education.",
+        title: "Funding Guidance",
+        text: "Funding guidance helps students identify financial support for international education.",
       },
       {
         title: "Financial Documentation Guidance",
@@ -757,7 +966,7 @@ const seedStore: AppStore = {
       {
         intake: "September 2026",
         deadline: "Apply by March - June 2026",
-        description: "Major intake with the widest university and scholarship availability.",
+        description: "Major intake with the widest university and funding availability.",
       },
     ],
     faqs: [
@@ -767,11 +976,11 @@ const seedStore: AppStore = {
       },
       {
         question: "When should I start my study abroad application?",
-        answer: "Start at least 6-9 months before your target intake so there is enough time for shortlisting, documents, applications, scholarships, and visa preparation.",
+        answer: "Start at least 6-9 months before your target intake so there is enough time for shortlisting, documents, applications, funding planning, and visa preparation.",
       },
       {
-        question: "Do you help with scholarships?",
-        answer: "Yes. We help identify merit scholarships, early application discounts, fee waivers, and university-specific funding options.",
+        question: "Do you help with funding options?",
+        answer: "Yes. We help identify early application discounts, fee waivers, assistantships, and university-specific funding options.",
       },
       {
         question: "What documents are usually required?",
@@ -783,7 +992,7 @@ const seedStore: AppStore = {
       "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities, offering expertise across law, medicine, business, and other academic fields.",
     aboutHighlights: [
       "College & University Admission",
-      "Scholarship Assistance",
+      "Funding Guidance",
       "Career Counselling",
       "Professional Consulate for Visa Processing",
       "Financial Documentation Guidance",
@@ -795,6 +1004,81 @@ const seedStore: AppStore = {
     contactPhone: "+8801758 580909",
     footerTagline: "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities.",
   },
+  cmsPages: [
+    createSeedCmsPage({
+      title: "Home",
+      slug: "home",
+      heroTitle: "Your global future starts here.",
+      heroSubtitle: "Explore world-class education opportunities across top destinations.",
+      description: "Explore practical study pathways built around your academic profile, budget, and long-term career plans.",
+      cards: [
+        { title: "Global Universities", description: "Top ranked institutions matched to your profile.", icon: "University" },
+        { title: "Expert Advisors", description: "One-to-one personalized admission guidance.", icon: "Users" },
+        { title: "Visa Assistance", description: "Documentation and readiness support.", icon: "Shield" },
+      ],
+    }),
+    createSeedCmsPage({
+      title: "Services",
+      slug: "services",
+      heroTitle: "Study abroad services built around your goals.",
+      heroSubtitle: "Admissions, funding, visa, and pre-departure support in one managed flow.",
+      description: "Manage every service page section, card, FAQ, testimonial, gallery item, CTA, and SEO setting from the CMS.",
+      cards: [
+        { title: "Admission Counselling", description: "Shortlist universities and courses with practical guidance.", icon: "GraduationCap" },
+        { title: "Funding Guidance", description: "Plan fees, documents, and realistic financial support options.", icon: "Wallet" },
+        { title: "Visa Documentation", description: "Prepare visa paperwork and interview readiness.", icon: "FileCheck" },
+      ],
+    }),
+    createSeedCmsPage({
+      title: "Destinations",
+      slug: "destinations",
+      heroTitle: "Compare destinations before you apply.",
+      heroSubtitle: "Choose the right country based on course fit, budget, work rights, and long-term plans.",
+      description: "Use this CMS page to manage destination page hero, SEO, sections, cards, FAQs, gallery, CTA, and footer text.",
+      cards: [
+        { title: "USA", description: "Research-led universities and STEM pathways.", icon: "Flag" },
+        { title: "UK", description: "Fast masters and strong employability.", icon: "Flag" },
+        { title: "Canada", description: "Affordable programs and immigration options.", icon: "Flag" },
+      ],
+    }),
+    createSeedCmsPage({
+      title: "Consultants",
+      slug: "consultants",
+      heroTitle: "Meet advisors who understand your next step.",
+      heroSubtitle: "Connect with destination specialists and admission mentors.",
+      description: "Create consultant page sections, advisor cards, testimonials, FAQs, CTA content, and page SEO from one place.",
+      cards: [
+        { title: "Destination Specialists", description: "Country-specific guidance for admissions and visas.", icon: "MapPin" },
+        { title: "Application Mentors", description: "Support for SOP, LOR, resume, and application timelines.", icon: "ClipboardCheck" },
+      ],
+    }),
+    createSeedCmsPage({
+      title: "About",
+      slug: "about",
+      heroTitle: "Built for serious study abroad decisions.",
+      heroSubtitle: "A student-first education consultancy with practical, transparent guidance.",
+      description: "Tell your story, highlight values, add media, publish testimonials, and control page SEO from the CMS.",
+    }),
+    createSeedCmsPage({
+      title: "Contact",
+      slug: "contact",
+      heroTitle: "Ready to start your assessment?",
+      heroSubtitle: "Book a free consultation and get a practical roadmap.",
+      description: "Manage contact page copy, CTA sections, FAQ, gallery, testimonials, footer text, and SEO settings.",
+    }),
+    createSeedCmsPage({
+      title: "Portal",
+      slug: "portal",
+      heroTitle: "Student portal for every application step.",
+      heroSubtitle: "Track inquiries, programs, documents, appointments, and messages.",
+      description: "Edit the portal landing page content and guidance shown before sign-in.",
+      cards: [
+        { title: "Documents", description: "Upload and track student documents.", icon: "FileText" },
+        { title: "Appointments", description: "Manage meetings and reminders.", icon: "Calendar" },
+        { title: "Messages", description: "Stay connected with advisors.", icon: "MessageCircle" },
+      ],
+    }),
+  ],
   ownerSettings: {
     companyName: "NextStep Global",
     ownerName: "NextStep Owner",
@@ -832,7 +1116,7 @@ const seedStore: AppStore = {
       purpose: "inquiry_email",
       subject: "NextStep Global - {{subject}}",
       message:
-        "Hi {{name}},\n\nThank you for contacting NextStep Global.\nWe received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
+        "Hi {{name}},\n\nThank you for contacting NextStep Global.\nWe received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, funding planning, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
       updatedAt: "2026-05-12T00:00:00.000Z",
     },
     {
@@ -842,7 +1126,7 @@ const seedStore: AppStore = {
       purpose: "inquiry_whatsapp",
       subject: "NextStep Global inquiry reply",
       message:
-        "Hi {{name}},\n\nThank you for contacting NextStep Global. We received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
+        "Hi {{name}},\n\nThank you for contacting NextStep Global. We received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, funding planning, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
       updatedAt: "2026-05-12T00:00:00.000Z",
     },
   ],
@@ -911,6 +1195,7 @@ const seedStore: AppStore = {
   roleMenuAccess: {
     admin: [
       "dashboard",
+      "pages",
       "content",
       "inquiries",
       "pipeline",
@@ -919,15 +1204,16 @@ const seedStore: AppStore = {
       "programs",
       "countries",
       "gallery",
+      "media",
       "testimonials",
       "notifications",
       "chats",
       "templates",
       "documents",
-      "scholarships",
       "checklists",
+      "auditLogs",
     ],
-    userPortal: ["hero", "profile", "inquiries", "programs", "documents", "appointments", "scholarships", "messages"],
+    userPortal: ["hero", "profile", "inquiries", "programs", "documents", "appointments", "messages"],
   },
 };
 
@@ -991,6 +1277,34 @@ function normalizeStore(store: AppStore): boolean {
   if (!store.siteContent) {
     store.siteContent = cloneStore(seedStore).siteContent;
     changed = true;
+  }
+  if (!store.cmsPages) {
+    store.cmsPages = cloneStore(seedStore).cmsPages;
+    changed = true;
+  }
+  const seededCmsPages = cloneStore(seedStore).cmsPages;
+  for (const seedPage of seededCmsPages) {
+    if (!store.cmsPages.some((page) => page.slug === seedPage.slug)) {
+      store.cmsPages.push(seedPage);
+      changed = true;
+    }
+  }
+  for (const page of store.cmsPages) {
+    if (!page.id) page.id = `cms-${page.slug || Date.now()}`;
+    if (!page.url) page.url = page.slug === "home" ? "/" : `/${page.slug}`;
+    if (!page.seo) page.seo = { metaTitle: page.title, metaDescription: "", metaKeywords: "", seoImage: null };
+    if (!page.hero) page.hero = createSeedCmsPage({ title: page.title, slug: page.slug, heroTitle: page.title, heroSubtitle: "", description: "" }).hero;
+    if (!Array.isArray(page.sections)) page.sections = [];
+    if (!Array.isArray(page.cards)) page.cards = [];
+    if (!Array.isArray(page.faqs)) page.faqs = [];
+    if (!Array.isArray(page.testimonials)) page.testimonials = [];
+    if (!Array.isArray(page.gallery)) page.gallery = [];
+    if (!page.cta) page.cta = createSeedCmsPage({ title: page.title, slug: page.slug, heroTitle: page.title, heroSubtitle: "", description: "" }).cta;
+    if (!page.status) page.status = "draft";
+    if (typeof page.visible !== "boolean") page.visible = true;
+    if (!Array.isArray(page.versionHistory)) page.versionHistory = [];
+    if (!page.createdAt) page.createdAt = new Date().toISOString();
+    if (!page.updatedAt) page.updatedAt = page.createdAt;
   }
   if (!store.siteContent.aboutHighlights?.length) {
     store.siteContent.aboutHighlights = cloneStore(seedStore).siteContent.aboutHighlights;
@@ -1107,13 +1421,15 @@ function normalizeStore(store: AppStore): boolean {
     store.roleMenuAccess.userPortal = cloneStore(seedStore).roleMenuAccess.userPortal;
     changed = true;
   }
-  for (const menuId of ["scholarships", "checklists", "chats"]) {
+  store.roleMenuAccess.admin = store.roleMenuAccess.admin.filter((menuId) => menuId !== "scholarships");
+  store.roleMenuAccess.userPortal = store.roleMenuAccess.userPortal.filter((sectionId) => sectionId !== "scholarships");
+  for (const menuId of ["pages", "media", "checklists", "chats", "auditLogs"]) {
     if (!store.roleMenuAccess.admin.includes(menuId)) {
       store.roleMenuAccess.admin.push(menuId);
       changed = true;
     }
   }
-  for (const sectionId of ["appointments", "scholarships", "messages"]) {
+  for (const sectionId of ["appointments", "messages"]) {
     if (!store.roleMenuAccess.userPortal.includes(sectionId)) {
       store.roleMenuAccess.userPortal.push(sectionId);
       changed = true;
@@ -1232,6 +1548,33 @@ function normalizeStore(store: AppStore): boolean {
     const normalizedCareerOutcomes = normalizeStringArray(program.careerOutcomes);
     if (JSON.stringify(normalizedCareerOutcomes) !== JSON.stringify(program.careerOutcomes)) {
       program.careerOutcomes = normalizedCareerOutcomes;
+      changed = true;
+    }
+  }
+
+  for (const image of store.gallery) {
+    if (image.name === undefined) {
+      image.name = image.url.split("/").pop() || `image-${image.id}`;
+      changed = true;
+    }
+    if (image.contentType === undefined) {
+      image.contentType = null;
+      changed = true;
+    }
+    if (image.sizeBytes === undefined) {
+      image.sizeBytes = null;
+      changed = true;
+    }
+    if (image.uploadedByUserId === undefined) {
+      image.uploadedByUserId = null;
+      changed = true;
+    }
+    if (image.uploadedByName === undefined) {
+      image.uploadedByName = null;
+      changed = true;
+    }
+    if (image.updatedAt === undefined) {
+      image.updatedAt = null;
       changed = true;
     }
   }
@@ -1388,7 +1731,7 @@ function calculateLeadScore(input: {
   let score = 20;
   if (input.phone) score += 15;
   if (input.whatsapp) score += 10;
-  if (/(visa|urgent|asap|september|january|may|intake|scholarship|ielts|pte|budget)/.test(text)) score += 25;
+  if (/(visa|urgent|asap|september|january|may|intake|funding|ielts|pte|budget)/.test(text)) score += 25;
   if (input.message.length > 120) score += 15;
   if (input.followUpAt && new Date(input.followUpAt).getTime() <= Date.now() + 1000 * 60 * 60 * 24 * 7) score += 10;
   if (input.leadStage && ["counseling", "documents", "applied", "offer", "visa"].includes(input.leadStage)) score += 15;

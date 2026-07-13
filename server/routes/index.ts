@@ -10,6 +10,7 @@ import adminRouter from "./admin";
 import destinationsRouter from "./destinations";
 import consultantsRouter from "./consultants";
 import siteContentRouter from "./site-content";
+import cmsPagesRouter from "./cms-pages";
 import appointmentsRouter from "./appointments";
 import ownerSettingsRouter from "./owner-settings";
 import auditLogsRouter from "./audit-logs";
@@ -23,6 +24,7 @@ import documentChecklistsRouter from "./document-checklists";
 import messagesRouter from "./messages";
 import chatRouter from "./chat";
 import remindersRouter from "./reminders";
+import adminMediaRouter from "./admin-media";
 
 const router: IRouter = Router();
 
@@ -35,6 +37,7 @@ router.use("/testimonials", testimonialsRouter);
 router.use("/destinations", destinationsRouter);
 router.use("/consultants", consultantsRouter);
 router.use("/site-content", siteContentRouter);
+router.use("/cms-pages", cmsPagesRouter);
 router.use("/appointments", appointmentsRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/notification-templates", notificationTemplatesRouter);
@@ -49,6 +52,7 @@ router.use("/reminders", remindersRouter);
 router.use("/owner-settings", ownerSettingsRouter);
 router.use("/audit-logs", auditLogsRouter);
 router.use("/admin-invites", adminInvitesRouter);
+router.use("/admin/media", adminMediaRouter);
 router.use("/admin", adminRouter);
 
 export default router;

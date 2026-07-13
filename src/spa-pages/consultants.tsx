@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PublicHeader } from "@/components/layout/public-header";
 import { listConsultants } from "@/lib/api";
-import { withBasePath } from "@/lib/runtime";
+import { assetUrl } from "@/lib/runtime";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Globe2, Languages, Sparkles, UsersRound } from "lucide-react";
 
@@ -34,7 +34,7 @@ export default function ConsultantsPage() {
               Meet the mentors who shape your global plan.
             </h1>
             <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-200">
-              Work with counselors who understand admissions, visa strategy, scholarship planning, and the small profile details that change outcomes.
+              Work with counselors who understand admissions, visa strategy, funding planning, and the small profile details that change outcomes.
             </p>
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
               <Link href="/#contact">
@@ -82,7 +82,7 @@ export default function ConsultantsPage() {
             <Card key={consultant.id} className="group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
               <div className="relative h-80 overflow-hidden bg-slate-200">
                 {consultant.imageUrl ? (
-                  <img src={consultant.imageUrl} alt={consultant.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <img src={assetUrl(consultant.imageUrl)} alt={consultant.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 ) : (
                   <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-6xl font-serif font-bold text-slate-400">
                     {consultant.name.slice(0, 1)}

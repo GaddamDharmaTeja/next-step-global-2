@@ -41,6 +41,32 @@ export interface AuditLogRecord {
   entityId: string;
   summary: string;
   createdAt: string;
+  user?: string;
+  module?: string;
+  timestamp?: string;
+  details?: string;
+}
+
+export interface AuditLogListRecord {
+  logs: AuditLogRecord[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface MediaFileRecord {
+  id: number;
+  name: string;
+  url: string;
+  caption?: string | null;
+  category?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+  uploadedByUserId?: string | null;
+  uploadedByName?: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt?: string | null;
 }
 
 export interface AdminInviteRecord {
@@ -213,11 +239,18 @@ export interface InquiryRecord {
 
 export interface GalleryUploadResult {
   id: number;
+  name?: string | null;
   url: string;
+  relativeUrl?: string | null;
   caption?: string | null;
   category?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+  uploadedByUserId?: string | null;
+  uploadedByName?: string | null;
   sortOrder: number;
   createdAt: string;
+  updatedAt?: string | null;
 }
 
 export interface DestinationRecord {
@@ -307,11 +340,93 @@ export interface SiteContentRecord {
   footerTagline: string;
 }
 
+export type CmsPageStatus = "draft" | "published";
+
+export interface CmsPageRecord {
+  id: string;
+  title: string;
+  slug: string;
+  url: string;
+  seo: {
+    metaTitle: string;
+    metaDescription: string;
+    metaKeywords: string;
+    seoImage?: string | null;
+  };
+  hero: {
+    title: string;
+    subtitle: string;
+    description: string;
+    backgroundImage?: string | null;
+    backgroundVideo?: string | null;
+    primaryButtonText: string;
+    primaryButtonLink: string;
+    secondaryButtonText: string;
+    secondaryButtonLink: string;
+    visible: boolean;
+  };
+  sections: Array<{
+    id: string;
+    title: string;
+    subtitle: string;
+    richText: string;
+    images: string[];
+    videos: string[];
+    icons: string[];
+    buttonText: string;
+    buttonLink: string;
+    backgroundColor: string;
+    order: number;
+    enabled: boolean;
+  }>;
+  cards: Array<{
+    id: string;
+    image?: string | null;
+    icon: string;
+    title: string;
+    description: string;
+    link: string;
+    order: number;
+    active: boolean;
+  }>;
+  faqs: Array<{ id: string; question: string; answer: string; order: number }>;
+  testimonials: Array<{ id: string; clientName: string; designation: string; review: string; rating: number; photo?: string | null }>;
+  gallery: Array<{ id: string; image: string; caption: string; order: number }>;
+  cta: {
+    heading: string;
+    description: string;
+    buttonText: string;
+    buttonLink: string;
+    backgroundColor: string;
+  };
+  footerText: string;
+  status: CmsPageStatus;
+  scheduledPublishAt?: string | null;
+  visible: boolean;
+  versionHistory: Array<{ id: string; savedAt: string; savedBy: string; status: CmsPageStatus; title: string }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UploadGalleryPayload {
   file: File;
   caption?: string;
   category?: string;
   sortOrder?: number;
+}
+
+export interface UpdateGalleryPayload {
+  url?: string;
+  caption?: string | null;
+  category?: string | null;
+  sortOrder?: number;
+  file?: File | null;
+}
+
+export interface UploadMediaPayload {
+  file: File;
+  caption?: string;
+  category?: string;
 }
 
 export interface UploadStudentDocumentPayload {
@@ -321,6 +436,7 @@ export interface UploadStudentDocumentPayload {
 }
 
 const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
+const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
@@ -488,10 +604,17 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-export async function uploadGalleryImage(payload: UploadGalleryPayload) {
-  if (payload.file.size > MAX_UPLOAD_SIZE) {
+function validateImageFile(file: File) {
+  if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
+    throw new Error("Please choose a JPG, PNG, or WEBP image");
+  }
+  if (file.size > MAX_UPLOAD_SIZE) {
     throw new Error("Please choose an image smaller than 15MB");
   }
+}
+
+export async function uploadGalleryImage(payload: UploadGalleryPayload) {
+  validateImageFile(payload.file);
 
   const dataUrl = await readFileAsDataUrl(payload.file);
   const [, base64Data = ""] = dataUrl.split(",", 2);
@@ -507,6 +630,124 @@ export async function uploadGalleryImage(payload: UploadGalleryPayload) {
       sortOrder: payload.sortOrder ?? 0,
     }),
   });
+}
+
+export async function listGalleryImagesManual() {
+  const data = await request<unknown>("/api/gallery", { method: "GET" });
+  return asRecordArray<GalleryUploadResult>(data, ["gallery", "images"]);
+}
+
+export async function getGalleryImage(id: number) {
+  return request<GalleryUploadResult>(`/api/gallery/${id}`, { method: "GET" });
+}
+
+export async function updateGalleryImageManual(id: number, payload: UpdateGalleryPayload) {
+  const body: Record<string, unknown> = {
+    url: payload.url,
+    caption: payload.caption ?? null,
+    category: payload.category ?? null,
+    sortOrder: payload.sortOrder,
+  };
+
+  if (payload.file) {
+    validateImageFile(payload.file);
+    const dataUrl = await readFileAsDataUrl(payload.file);
+    const [, base64Data = ""] = dataUrl.split(",", 2);
+    body.filename = payload.file.name;
+    body.contentType = payload.file.type;
+    body.base64Data = base64Data;
+  }
+
+  return request<GalleryUploadResult>(`/api/gallery/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteGalleryImageManual(id: number) {
+  const response = await fetch(apiUrl(`/api/gallery/${id}`), {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok && response.status !== 204) {
+    const payload = await parseResponse(response);
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "Failed to delete gallery image";
+    throw new Error(message);
+  }
+}
+
+export async function uploadAdminMedia(payload: UploadMediaPayload) {
+  validateImageFile(payload.file);
+
+  const dataUrl = await readFileAsDataUrl(payload.file);
+  const [, base64Data = ""] = dataUrl.split(",", 2);
+
+  return request<MediaFileRecord>("/api/admin/media/upload", {
+    method: "POST",
+    body: JSON.stringify({
+      filename: payload.file.name,
+      contentType: payload.file.type,
+      base64Data,
+      caption: payload.caption || null,
+      category: payload.category || null,
+    }),
+  });
+}
+
+export async function listAdminMedia(params?: { search?: string }) {
+  const search = new URLSearchParams();
+  if (params?.search) search.set("search", params.search);
+  const suffix = search.toString() ? `?${search.toString()}` : "";
+  const data = await request<{ media: MediaFileRecord[]; total: number }>(`/api/admin/media/list${suffix}`, { method: "GET" });
+  return {
+    media: Array.isArray(data.media) ? data.media : [],
+    total: Number(data.total) || 0,
+  };
+}
+
+export async function updateAdminMedia(
+  id: number,
+  payload: Partial<Pick<MediaFileRecord, "name" | "url" | "caption" | "category">> & {
+    file?: File | null;
+  },
+) {
+  let filePayload = {};
+  if (payload.file) {
+    if (payload.file.size > MAX_UPLOAD_SIZE) {
+      throw new Error("Please choose an image smaller than 15MB");
+    }
+    const dataUrl = await readFileAsDataUrl(payload.file);
+    const [, base64Data = ""] = dataUrl.split(",", 2);
+    filePayload = {
+      filename: payload.file.name,
+      contentType: payload.file.type,
+      base64Data,
+    };
+  }
+  const rest = { ...payload };
+  delete rest.file;
+  return request<MediaFileRecord>(`/api/admin/media/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ ...rest, ...filePayload }),
+  });
+}
+
+export async function deleteAdminMedia(id: number) {
+  const response = await fetch(apiUrl(`/api/admin/media/${id}`), {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok && response.status !== 204) {
+    const payload = await parseResponse(response);
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "Failed to delete media";
+    throw new Error(message);
+  }
 }
 
 export async function uploadImageFile(file: File, options?: { caption?: string; category?: string }) {
@@ -684,8 +925,23 @@ export async function clearDatabaseCollections(collections: string[]) {
   });
 }
 
-export async function listAuditLogs() {
-  return request<AuditLogRecord[]>("/api/audit-logs", { method: "GET" });
+export async function listAuditLogs(params?: { search?: string; type?: string; page?: number; pageSize?: number }) {
+  const search = new URLSearchParams();
+  if (params?.search) search.set("search", params.search);
+  if (params?.type) search.set("type", params.type);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.pageSize) search.set("pageSize", String(params.pageSize));
+  const suffix = search.toString() ? `?${search.toString()}` : "";
+  const data = await request<AuditLogRecord[] | AuditLogListRecord>(`/api/audit-logs${suffix}`, { method: "GET" });
+  if (Array.isArray(data)) {
+    return { logs: data, total: data.length, page: 1, pageSize: data.length || 25 };
+  }
+  return {
+    logs: Array.isArray(data.logs) ? data.logs : [],
+    total: Number(data.total) || 0,
+    page: Number(data.page) || 1,
+    pageSize: Number(data.pageSize) || 25,
+  };
 }
 
 export async function listAdminInvites() {
@@ -889,6 +1145,75 @@ export async function updateSiteContent(payload: SiteContentRecord) {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+}
+
+export async function listCmsPages(options?: { includeDrafts?: boolean }) {
+  const suffix = options?.includeDrafts ? "?includeDrafts=true" : "";
+  const data = await request<CmsPageRecord[]>(`/api/cms-pages${suffix}`, { method: "GET" });
+  return Array.isArray(data) ? data : [];
+}
+
+export async function getCmsPage(slug: string, options?: { includeDrafts?: boolean }) {
+  const suffix = options?.includeDrafts ? "?includeDrafts=true" : "";
+  return request<CmsPageRecord>(`/api/cms-pages/${slug}${suffix}`, { method: "GET" });
+}
+
+export async function createCmsPage(payload: CmsPageRecord) {
+  return request<CmsPageRecord>("/api/cms-pages", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCmsPage(id: string, payload: CmsPageRecord) {
+  return request<CmsPageRecord>(`/api/cms-pages/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function createCmsSection(pageId: string, payload: CmsPageRecord["sections"][number]) {
+  return request<CmsPageRecord["sections"][number]>(`/api/cms-pages/${pageId}/sections`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCmsSection(pageId: string, sectionId: string, payload: Partial<CmsPageRecord["sections"][number]>) {
+  return request<CmsPageRecord["sections"][number]>(`/api/cms-pages/${pageId}/sections/${sectionId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCmsSection(pageId: string, sectionId: string) {
+  const response = await fetch(apiUrl(`/api/cms-pages/${pageId}/sections/${sectionId}`), {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok && response.status !== 204) {
+    const payload = await parseResponse(response);
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "Failed to delete CMS section";
+    throw new Error(message);
+  }
+}
+
+export async function deleteCmsPage(id: string) {
+  const response = await fetch(apiUrl(`/api/cms-pages/${id}`), {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok && response.status !== 204) {
+    const payload = await parseResponse(response);
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : "Failed to delete CMS page";
+    throw new Error(message);
+  }
 }
 
 export async function createAppointment(payload: AppointmentPayload) {

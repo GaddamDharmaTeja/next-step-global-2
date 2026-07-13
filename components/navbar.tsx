@@ -44,8 +44,8 @@ export default function Navbar({ active, variant = "default" }: NavbarProps) {
                     <BrandLogo
                         frameClassName={
                             isOverlay
-                                ? "flex h-[64px] items-center rounded-2xl border border-white/12 bg-white/92 px-3 shadow-[0_14px_34px_rgba(8,17,32,0.24)] backdrop-blur sm:px-4"
-                                : "flex h-[64px] items-center rounded-2xl bg-white px-3 sm:px-4"
+                                ? "flex h-[64px] items-center rounded-lg border border-white/12 bg-white/92 px-3 shadow-[0_14px_34px_rgba(8,17,32,0.24)] backdrop-blur sm:px-4"
+                                : "flex h-[64px] items-center rounded-lg bg-white px-3 sm:px-4"
                         }
                         imageClassName="h-11 w-auto max-w-[180px] object-contain sm:h-14 sm:max-w-[280px]"
                     />

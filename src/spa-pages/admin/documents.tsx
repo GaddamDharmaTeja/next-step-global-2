@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listStudentDocuments, updateStudentDocument, type StudentDocumentRecord } from "@/lib/api";
+import { assetUrl } from "@/lib/runtime";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useListUsers } from "@workspace/api-client-react";
@@ -48,7 +49,7 @@ export default function AdminDocumentsPage() {
               <div>
                 <div className="font-medium">{doc.fileName}</div>
                 <div className="text-xs text-muted-foreground">{doc.userName || doc.userEmail}</div>
-                <a className="mt-2 inline-block text-sm text-sky-700 hover:underline" href={doc.fileUrl} target="_blank" rel="noreferrer">Open document</a>
+                <a className="mt-2 inline-block text-sm text-sky-700 hover:underline" href={assetUrl(doc.fileUrl)} target="_blank" rel="noreferrer">Open document</a>
               </div>
               <Select defaultValue={doc.status} onValueChange={(value) => save(doc, value as StudentDocumentRecord["status"], doc.note || null)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

@@ -1,5 +1,5 @@
 import { AdminLayout } from "@/components/layout/admin-layout";
-import { useListPrograms, useCreateProgram, useUpdateProgram, useDeleteProgram, getListProgramsQueryKey } from "@workspace/api-client-react";
+import { useListPrograms, useCreateProgram, useUpdateProgram, useDeleteProgram, getListProgramsQueryKey, type Program } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { uploadImageFile } from "@/lib/api";
+import { assetUrl } from "@/lib/runtime";
 
 const programSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -27,7 +28,6 @@ const programSchema = z.object({
   eligibility: z.string().optional(),
   englishRequirement: z.string().optional(),
   applicationDeadline: z.string().optional(),
-  scholarshipAvailable: z.boolean().default(false),
   careerOutcomes: z.string().optional(),
   featured: z.boolean().default(false),
 });
@@ -49,6 +49,7 @@ function toProgramPayload(values: z.infer<typeof programSchema>) {
     eligibility: values.eligibility || undefined,
     englishRequirement: values.englishRequirement || undefined,
     applicationDeadline: values.applicationDeadline || undefined,
+    scholarshipAvailable: false,
     careerOutcomes: linesToArray(values.careerOutcomes),
   };
 }
@@ -77,7 +78,6 @@ export default function AdminProgramsPage() {
       eligibility: "",
       englishRequirement: "",
       applicationDeadline: "",
-      scholarshipAvailable: false,
       careerOutcomes: "",
       featured: false,
     },
@@ -105,7 +105,7 @@ export default function AdminProgramsPage() {
     }
   };
 
-  const handleEdit = (program: any) => {
+  const handleEdit = (program: Program) => {
     setEditingId(program.id);
     form.reset({
       title: program.title,
@@ -118,7 +118,6 @@ export default function AdminProgramsPage() {
       eligibility: program.eligibility || "",
       englishRequirement: program.englishRequirement || "",
       applicationDeadline: program.applicationDeadline || "",
-      scholarshipAvailable: Boolean(program.scholarshipAvailable),
       careerOutcomes: arrayToLines(program.careerOutcomes),
       featured: program.featured,
     });
@@ -138,7 +137,6 @@ export default function AdminProgramsPage() {
       eligibility: "",
       englishRequirement: "",
       applicationDeadline: "",
-      scholarshipAvailable: false,
       careerOutcomes: "",
       featured: false,
     });
@@ -210,7 +208,7 @@ export default function AdminProgramsPage() {
                         <FormControl>
                           <div className="space-y-3">
                             <Input type="file" accept="image/*" disabled={isUploadingImage} onChange={(event) => handleImageUpload(event.target.files?.[0] || null)} />
-                            {field.value && <img src={field.value} alt="Program preview" className="h-28 w-full rounded-xl object-cover" />}
+                            {field.value && <img src={assetUrl(field.value)} alt="Program preview" className="h-28 w-full rounded-xl object-cover" />}
                             <Input type="hidden" {...field} />
                           </div>
                         </FormControl>
@@ -239,15 +237,6 @@ export default function AdminProgramsPage() {
                   )} />
                   <FormField control={form.control} name="englishRequirement" render={({ field }) => (
                     <FormItem><FormLabel>IELTS / PTE Requirement</FormLabel><FormControl><Input {...field} placeholder="IELTS 6.5 overall or equivalent" /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="scholarshipAvailable" render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Scholarship Available</FormLabel>
-                        <div className="text-sm text-muted-foreground">Show scholarship availability on public program cards</div>
-                      </div>
-                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                    </FormItem>
                   )} />
                   <FormField control={form.control} name="featured" render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">

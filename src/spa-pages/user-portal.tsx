@@ -14,10 +14,10 @@ import {
   listDocumentChecklists,
   listMyInquiries,
   listMyStudentDocuments,
-  listScholarships,
   signOut,
   uploadStudentDocument,
 } from "@/lib/api";
+import { assetUrl } from "@/lib/runtime";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowUpRight,
@@ -75,9 +75,7 @@ function checklistFor(inquiries: Awaited<ReturnType<typeof listMyInquiries>>) {
 }
 
 export default function UserPortalPage() {
-  const { data: profile, isLoading } = useGetMyProfile({
-    query: { retry: false, refetchOnWindowFocus: false } as any,
-  });
+  const { data: profile, isLoading } = useGetMyProfile();
   const { data: programs } = useListPrograms();
   const { data: inquiries } = useQuery({
     queryKey: ["/api/inquiries/mine"],
@@ -90,7 +88,6 @@ export default function UserPortalPage() {
     enabled: Boolean(profile),
   });
   const { data: consultants = [] } = useQuery({ queryKey: ["/api/consultants"], queryFn: listConsultants, enabled: Boolean(profile) });
-  const { data: scholarships = [] } = useQuery({ queryKey: ["/api/scholarships"], queryFn: () => listScholarships(), enabled: Boolean(profile) });
   const { data: contentAccess } = useQuery({
     queryKey: ["/api/role-menu-access"],
     queryFn: getRoleMenuAccess,
@@ -408,25 +405,6 @@ export default function UserPortalPage() {
               </Card>
             )}
 
-            {canSee("scholarships") && (
-              <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-                <div className="border-b border-slate-200/80 p-6">
-                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Scholarships</div>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Funding opportunities</h2>
-                </div>
-                <CardContent className="grid gap-4 p-6 md:grid-cols-2">
-                  {scholarships.slice(0, 4).map((scholarship) => (
-                    <div key={scholarship.id} className="rounded-2xl border border-slate-200 bg-white p-4">
-                      <div className="font-semibold text-slate-900">{scholarship.name}</div>
-                      <div className="mt-1 text-sm text-slate-600">{scholarship.country} / {scholarship.programLevel}</div>
-                      <div className="mt-3 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-800">{scholarship.awardValue}</div>
-                      <p className="mt-3 text-sm leading-6 text-slate-600">{scholarship.eligibility}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
             {canSee("messages") && (
               <Card className="rounded-[1.75rem] border-white/60 bg-white/80 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
                 <div className="flex items-center justify-between gap-4 border-b border-slate-200/80 p-6">
@@ -535,7 +513,7 @@ export default function UserPortalPage() {
                       <div className="relative h-48 overflow-hidden bg-slate-100">
                         {prog.imageUrl ? (
                           <img
-                            src={prog.imageUrl}
+                            src={assetUrl(prog.imageUrl)}
                             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                             alt={prog.title}
                           />

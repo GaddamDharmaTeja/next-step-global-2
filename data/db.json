@@ -200,7 +200,7 @@
         "English-taught degree options",
         "Schengen travel exposure",
         "Strong research and innovation hubs",
-        "Multiple scholarship routes"
+        "Multiple funding routes"
       ],
       "universities": [
         "Technical University of Munich",
@@ -290,15 +290,15 @@
       }
     ],
     "mentorshipTitle": "Our Services",
-    "mentorshipSubtitle": "We guide students through admissions, scholarship planning, visa preparation, and financial documentation with practical support at every step.",
+    "mentorshipSubtitle": "We guide students through admissions, funding planning, visa preparation, and financial documentation with practical support at every step.",
     "services": [
       {
         "title": "College & University Admission",
         "text": "College and university admission processes are simplified with expert guidance."
       },
       {
-        "title": "Scholarship Assistance",
-        "text": "Scholarship assistance helps students identify financial support for international education."
+        "title": "Funding Guidance",
+        "text": "Funding guidance helps students identify financial support for international education."
       },
       {
         "title": "Financial Documentation Guidance",
@@ -321,7 +321,7 @@
     "aboutText": "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities, offering expertise across law, medicine, business, and other academic fields.",
     "aboutHighlights": [
       "College & University Admission",
-      "Scholarship Assistance",
+      "Funding Guidance",
       "Career Counselling",
       "Professional Consulate for Visa Processing",
       "Financial Documentation Guidance"
@@ -368,10 +368,10 @@
       "id": 1,
       "name": "Priya Sharma",
       "role": "Senior Education Consultant",
-      "specialty": "Canada and scholarship planning",
+      "specialty": "Canada and visa planning",
       "experience": "12 Years",
       "imageUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop",
-      "bio": "Priya helps students match their academic profile with Canadian universities, scholarship options, and post-study pathways.",
+      "bio": "Priya helps students match their academic profile with Canadian universities, funding options, and post-study pathways.",
       "countries": [
         "Canada",
         "United Kingdom"

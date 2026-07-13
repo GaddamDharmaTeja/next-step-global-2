@@ -214,7 +214,7 @@ export default function AdminContentPage() {
                 <FormField control={form.control} name="aboutHighlights" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Welcome / Services Bullets</FormLabel>
-                    <FormControl><Textarea rows={5} placeholder="Scholarship Assistance" {...field} /></FormControl>
+                    <FormControl><Textarea rows={5} placeholder="Funding Guidance" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />

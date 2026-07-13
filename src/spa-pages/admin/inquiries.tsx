@@ -47,7 +47,7 @@ function getPriority(inquiry: AdminInquiry) {
   const age = daysSince(inquiry.createdAt);
   score += Math.min(age * 8, 38);
   if (inquiry.whatsapp || inquiry.phone) score += 10;
-  if (/(urgent|visa|deadline|scholarship|intake|apply|admission)/i.test(`${inquiry.subject} ${inquiry.message}`)) score += 16;
+  if (/(urgent|visa|deadline|funding|intake|apply|admission)/i.test(`${inquiry.subject} ${inquiry.message}`)) score += 16;
   if (inquiry.followUpAt && new Date(inquiry.followUpAt).getTime() < Date.now()) score += 18;
   return Math.min(score, 100);
 }
@@ -65,7 +65,7 @@ const fallbackInquiryEmailTemplate: NotificationTemplateRecord = {
   purpose: "inquiry_email",
   subject: "NextStep Global - {{subject}}",
   message:
-    "Hi {{name}},\n\nThank you for contacting NextStep Global.\nWe received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, scholarships, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
+    "Hi {{name}},\n\nThank you for contacting NextStep Global.\nWe received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, funding planning, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
   updatedAt: "",
 };
 
@@ -114,13 +114,14 @@ export default function AdminInquiriesPage() {
     queryKey: ["/api/notification-templates"],
     queryFn: listNotificationTemplates,
   });
-  const inquiries = (rawInquiries ?? []) as AdminInquiry[];
+  const inquiries = useMemo(() => (rawInquiries ?? []) as AdminInquiry[], [rawInquiries]);
   const updateInquiry = useUpdateInquiry();
   const deleteInquiry = useDeleteInquiry();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [now] = useState(() => Date.now());
 
   const enrichedInquiries = useMemo(
     () =>
@@ -146,7 +147,7 @@ export default function AdminInquiriesPage() {
   const metrics = useMemo(() => {
     const pending = inquiries.filter((inquiry) => inquiry.status === "pending").length;
     const highIntent = enrichedInquiries.filter((inquiry) => inquiry.priority >= 70).length;
-    const overdue = inquiries.filter((inquiry) => inquiry.followUpAt && new Date(inquiry.followUpAt).getTime() < Date.now()).length;
+    const overdue = inquiries.filter((inquiry) => inquiry.followUpAt && new Date(inquiry.followUpAt).getTime() < now).length;
     const contacted = inquiries.filter((inquiry) => inquiry.status === "contacted").length;
     return [
       { label: "Open leads", value: pending, tone: "text-amber-700" },
@@ -154,7 +155,7 @@ export default function AdminInquiriesPage() {
       { label: "Follow-ups due", value: overdue, tone: "text-blue-700" },
       { label: "Contacted", value: contacted, tone: "text-emerald-700" },
     ];
-  }, [enrichedInquiries, inquiries]);
+  }, [enrichedInquiries, inquiries, now]);
 
   const handleStatusChange = (id: number, status: string) => {
     updateInquiry.mutate({ inquiryId: id, data: { status: status as InquiryStatus } }, {

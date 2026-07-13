@@ -84,7 +84,7 @@ export default function ContactPage() {
             {content?.contactTitle || "Ready to start your assessment?"}
           </h1>
           <p className="mt-6 max-w-4xl text-xl leading-8 text-slate-600">
-            {content?.contactText || "Book a free consultation and get a practical roadmap for destination selection, admissions, scholarships, and visa preparation."}
+            {content?.contactText || "Book a free consultation and get a practical roadmap for destination selection, admissions, funding, and visa preparation."}
           </p>
         </div>
       </section>

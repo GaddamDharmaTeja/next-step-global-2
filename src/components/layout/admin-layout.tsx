@@ -5,7 +5,7 @@ import {
   CalendarDays,
   Crown,
   FileText,
-  GraduationCap,
+  Files,
   Home,
   Image as ImageIcon,
   LayoutDashboard,
@@ -26,9 +26,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BrandLogo } from "./brand-logo";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { data: profile, isLoading } = useGetMyProfile({
-    query: { retry: false, refetchOnWindowFocus: false } as any,
-  });
+  const { data: profile, isLoading } = useGetMyProfile();
   const { data: menuAccess } = useQuery({
     queryKey: ["/api/role-menu-access"],
     queryFn: getRoleMenuAccess,
@@ -62,14 +60,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { id: "pages", label: "Pages CMS", href: "/admin/pages", icon: Files },
     { id: "content", label: "Site Content", href: "/admin/content", icon: FileText },
     { id: "inquiries", label: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
     { id: "pipeline", label: "Pipeline", href: "/admin/pipeline", icon: LayoutDashboard },
     { id: "appointments", label: "Appointments", href: "/admin/appointments", icon: CalendarDays },
     { id: "consultants", label: "Consultants", href: "/admin/consultants", icon: Users },
-    { id: "programs", label: "Programs", href: "/admin/programs", icon: GraduationCap },
+    { id: "programs", label: "Programs", href: "/admin/programs", icon: Users },
     { id: "countries", label: "Countries", href: "/admin/destinations", icon: Map },
     { id: "gallery", label: "Gallery", href: "/admin/gallery", icon: ImageIcon },
+    { id: "media", label: "Media Manager", href: "/admin/media", icon: ImageIcon },
     { id: "testimonials", label: "Testimonials", href: "/admin/testimonials", icon: MessageCircle },
     { id: "users", label: "Users", href: "/admin/users", icon: Users },
     { id: "roles", label: "Roles", href: "/admin/roles", icon: UserCog },
@@ -77,14 +77,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     { id: "chats", label: "Chats", href: "/admin/chats", icon: MessageCircle },
     { id: "templates", label: "Templates", href: "/admin/templates", icon: NotebookText },
     { id: "documents", label: "Documents", href: "/admin/documents", icon: FileText },
-    { id: "scholarships", label: "Scholarships", href: "/admin/scholarships", icon: GraduationCap },
     { id: "checklists", label: "Checklists", href: "/admin/checklists", icon: ScrollText },
   ];
+
+  navItems.push({ id: "auditLogs", label: "Audit Logs", href: "/admin/audit-logs", icon: FileText });
 
   if (profile.role === "owner") {
     navItems.push(
       { id: "settings", label: "Owner Settings", href: "/admin/settings", icon: FileText },
-      { id: "auditLogs", label: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
     );
   }
 
@@ -111,6 +111,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     profile.role === "owner"
       ? "bg-[#d9a31a]/18 text-[#f7d36b] ring-1 ring-[#e3bc57]/25"
       : "bg-[#173f86]/30 text-[#d8e7ff] ring-1 ring-[#9ab8ef]/20";
+  const roleLabel =
+    profile.role === "owner"
+      ? "SUPER_ADMIN"
+      : profile.role === "manager"
+        ? "CONTENT_MANAGER"
+        : "ADMIN";
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(14,47,109,0.12),_transparent_24rem),radial-gradient(circle_at_bottom_right,_rgba(217,163,26,0.16),_transparent_26rem),linear-gradient(180deg,_#fbfcff_0%,_#f4f7fb_48%,_#ffffff_100%)] text-slate-950 lg:flex">
@@ -123,8 +129,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="mt-3">
                 <BrandLogo
-                  frameClassName="flex h-[84px] items-center rounded-2xl bg-white px-3 shadow-[0_12px_32px_rgba(8,17,32,0.25)]"
-                  imageClassName="h-16 w-auto max-w-[220px] object-contain"
+                  frameClassName="flex h-[88px] items-center rounded-lg bg-white px-3 shadow-[0_12px_32px_rgba(8,17,32,0.25)]"
+                  imageClassName="h-16 w-auto max-w-[250px] object-contain"
                 />
               </div>
             </div>
@@ -142,7 +148,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               </div>
               <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${roleTone}`}>
                 {profile.role === "owner" ? <Crown className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                {profile.role}
+                {roleLabel}
               </div>
             </div>
           </div>

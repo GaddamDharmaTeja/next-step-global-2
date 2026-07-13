@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { readStore, updateStore, type SiteContentRecord } from "../lib/store";
+import { createAuditLogEntry, readStore, updateStore, type SiteContentRecord } from "../lib/store";
 import { requireAdmin } from "../lib/auth";
 
 const router = Router();
@@ -89,6 +89,17 @@ router.patch("/", requireAdmin, async (req, res): Promise<void> => {
       contactPhone: cleanString(req.body?.contactPhone, store.siteContent.contactPhone),
       footerTagline: cleanString(req.body?.footerTagline, store.siteContent.footerTagline),
     };
+    store.auditLogs.unshift(
+      createAuditLogEntry({
+        actorUserId: req.authUser?.id,
+        actorName: req.authUser?.name || req.authUser?.email || "Admin",
+        actorRole: req.authUser?.role || "admin",
+        action: "content.updated",
+        entityType: "content",
+        entityId: "site-content",
+        summary: "Updated landing page site content",
+      }),
+    );
     return store.siteContent;
   });
 

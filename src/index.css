@@ -211,17 +211,27 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    overflow-x: hidden;
     background:
       radial-gradient(circle at 12% 8%, rgba(14, 47, 109, 0.08), transparent 28rem),
       radial-gradient(circle at 88% 0%, rgba(217, 163, 26, 0.12), transparent 26rem),
       linear-gradient(180deg, #fbfcff 0%, #f5f8fc 42%, #ffffff 100%);
     text-rendering: optimizeLegibility;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
   }
 
   ::selection {
