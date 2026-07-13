@@ -1,5 +1,3 @@
-import { readdir, stat, unlink } from "node:fs/promises";
-import path from "node:path";
 import { Router, type Request } from "express";
 import {
   CreateGalleryImageBody,
@@ -9,7 +7,8 @@ import {
 } from "@workspace/api-zod";
 import { createAuditLogEntry, nextNumericId, readStore, updateStore, type GalleryImageRecord } from "../lib/store";
 import { requireAdmin } from "../lib/auth";
-import { getUploadsRoot, saveBase64Image } from "../lib/uploads";
+import { saveBase64Image } from "../lib/uploads";
+import { deleteGridFsFileByUrl } from "../lib/gridfs";
 
 const router = Router();
 const galleryFolder = "gallery";
@@ -33,30 +32,13 @@ function normalizeStoredUrl(req: Request, value: string): string {
   if (!trimmed) return trimmed;
   try {
     const parsed = new URL(trimmed);
-    if (parsed.pathname.startsWith("/uploads/")) {
+    if (parsed.pathname.startsWith("/api/images/")) {
       return `${parsed.pathname}${parsed.search}`;
     }
   } catch {
     // Keep relative URLs as-is.
   }
   return trimmed;
-}
-
-function contentTypeFromName(filename: string): string | null {
-  const ext = path.extname(filename).toLowerCase();
-  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
-  if (ext === ".png") return "image/png";
-  if (ext === ".webp") return "image/webp";
-  return null;
-}
-
-function localPathFromUrl(url: string): string | null {
-  if (!url.startsWith(`/uploads/${galleryFolder}/`)) return null;
-  const uploadsRoot = getUploadsRoot();
-  const relative = url.replace(/^\/uploads\//, "").replace(/\//g, path.sep);
-  const resolved = path.resolve(uploadsRoot, relative);
-  if (!resolved.startsWith(uploadsRoot)) return null;
-  return resolved;
 }
 
 function toGalleryResponse(req: Request, image: GalleryImageRecord) {
@@ -75,56 +57,6 @@ function toGalleryResponse(req: Request, image: GalleryImageRecord) {
     createdAt: image.createdAt,
     updatedAt: image.updatedAt ?? null,
   };
-}
-
-async function listDiskGalleryImages() {
-  const folder = path.join(getUploadsRoot(), galleryFolder);
-  try {
-    const entries = await readdir(folder);
-    const images = [];
-    for (const filename of entries) {
-      const contentType = contentTypeFromName(filename);
-      if (!contentType) continue;
-      const filePath = path.join(folder, filename);
-      const info = await stat(filePath);
-      if (!info.isFile()) continue;
-      images.push({
-        name: filename,
-        url: `/uploads/${galleryFolder}/${filename}`,
-        contentType,
-        sizeBytes: info.size,
-        createdAt: info.birthtime.toISOString(),
-      });
-    }
-    return images;
-  } catch {
-    return [];
-  }
-}
-
-async function reconcileDiskGalleryImages() {
-  const diskImages = await listDiskGalleryImages();
-  if (diskImages.length === 0) return;
-
-  await updateStore((store) => {
-    for (const diskImage of diskImages) {
-      if (store.gallery.some((image) => image.url === diskImage.url)) continue;
-      store.gallery.push({
-        id: nextNumericId(store.gallery),
-        name: diskImage.name,
-        url: diskImage.url,
-        caption: diskImage.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "),
-        category: "legacy-upload",
-        contentType: diskImage.contentType,
-        sizeBytes: diskImage.sizeBytes,
-        uploadedByUserId: null,
-        uploadedByName: "Existing upload",
-        sortOrder: store.gallery.length,
-        createdAt: diskImage.createdAt,
-        updatedAt: null,
-      });
-    }
-  });
 }
 
 async function updateGalleryImage(req: Request, imageId: number, body: Record<string, unknown>) {
@@ -175,8 +107,9 @@ async function updateGalleryImage(req: Request, imageId: number, body: Record<st
   });
 
   if (replacementUrl && previous) {
-    const oldPath = localPathFromUrl(previous.url);
-    if (oldPath) await unlink(oldPath).catch(() => undefined);
+    await deleteGridFsFileByUrl(previous.url).catch((error) => {
+      req.log.warn({ err: error, url: previous.url }, "Failed to delete old GridFS gallery image");
+    });
   }
 
   return updated;
@@ -184,7 +117,6 @@ async function updateGalleryImage(req: Request, imageId: number, body: Record<st
 
 router.get("/", async (req, res): Promise<void> => {
   try {
-    await reconcileDiskGalleryImages();
     const store = await readStore();
     res.json([...store.gallery].sort((a, b) => a.sortOrder - b.sortOrder).map((image) => toGalleryResponse(req, image)));
   } catch (err) {
@@ -200,7 +132,6 @@ router.get("/:imageId", async (req, res): Promise<void> => {
     return;
   }
   try {
-    await reconcileDiskGalleryImages();
     const store = await readStore();
     const image = store.gallery.find((entry) => entry.id === imageId);
     if (!image) {
@@ -393,8 +324,9 @@ router.delete("/:imageId", requireAdmin, async (req, res): Promise<void> => {
       res.status(404).json({ error: "Image not found" });
       return;
     }
-    const filePath = localPathFromUrl(removed.url);
-    if (filePath) await unlink(filePath).catch(() => undefined);
+    await deleteGridFsFileByUrl(removed.url).catch((error) => {
+      req.log.warn({ err: error, url: removed.url }, "Failed to delete GridFS gallery image");
+    });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Failed to delete gallery image");

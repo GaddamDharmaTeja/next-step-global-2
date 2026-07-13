@@ -27,7 +27,7 @@ export function assetUrl(url?: string | null) {
     return url;
   }
 
-  if (apiBaseUrl && url.startsWith("/uploads/")) {
+  if (apiBaseUrl && url.startsWith("/api/images/")) {
     return `${apiBaseUrl}${url}`;
   }
 

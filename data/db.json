@@ -266,11 +266,14 @@
     }
   ],
   "siteContent": {
-    "heroTitle": "Start Your Learning Journey",
-    "heroAccent": "Now",
-    "heroSubtitle": "NextStep Global is a reliable student service provider committed to guiding ambitious learners, strengthening their education portfolio, and unlocking worldwide opportunities.",
-    "primaryCta": "Apply Now",
-    "secondaryCta": "Explore Destinations",
+    "heroTitle": "future",
+    "heroAccent": "starts here.",
+    "heroSubtitle": "At NextStep Global Educational Services, we provide personalized guidance for students aspiring to study abroad. From university selection and admissions to scholarship assistance, visa processing, and pre-departure support, we're with you every step of the way.\n\nWe don't just process applications - we help shape your future. Partner with experienced mentors dedicated to guiding you toward the world's leading universities.",
+    "brandLogoUrl": "/nextstep-logo.png",
+    "heroBackgroundImage": null,
+    "heroRightImage": null,
+    "primaryCta": "Get Free Assessment",
+    "secondaryCta": "Explore Services",
     "metrics": [
       {
         "value": "9394+",

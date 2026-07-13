@@ -150,7 +150,7 @@ function UploadField({
 
   return (
     <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-      <Input value={value || ""} onChange={(event) => onChange(event.target.value)} placeholder="/uploads/media/image.webp" />
+      <Input value={value || ""} onChange={(event) => onChange(event.target.value)} placeholder="/api/images/..." />
       <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-[#101b31] shadow-sm hover:bg-slate-50">
         <UploadCloud className="h-4 w-4" />
         {uploading ? "Uploading..." : label}

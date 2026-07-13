@@ -1,20 +1,11 @@
-import { readdir, stat, unlink } from "node:fs/promises";
-import path from "node:path";
 import { Router } from "express";
 import { createAuditLogEntry, nextNumericId, readStore, updateStore, type GalleryImageRecord } from "../lib/store";
 import { requireAdmin } from "../lib/auth";
-import { getUploadsRoot, saveBase64Image } from "../lib/uploads";
+import { saveBase64Image } from "../lib/uploads";
+import { deleteGridFsFileByUrl } from "../lib/gridfs";
 
 const router = Router();
 const mediaFolder = "gallery";
-
-function contentTypeFromName(filename: string): string | null {
-  const ext = path.extname(filename).toLowerCase();
-  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
-  if (ext === ".png") return "image/png";
-  if (ext === ".webp") return "image/webp";
-  return null;
-}
 
 function toMediaResponse(image: GalleryImageRecord) {
   return {
@@ -33,71 +24,8 @@ function toMediaResponse(image: GalleryImageRecord) {
   };
 }
 
-function localPathFromUrl(url: string): string | null {
-  if (!url.startsWith(`/uploads/${mediaFolder}/`)) return null;
-  const uploadsRoot = getUploadsRoot();
-  const relative = url.replace(/^\/uploads\//, "").replace(/\//g, path.sep);
-  const resolved = path.resolve(uploadsRoot, relative);
-  if (!resolved.startsWith(uploadsRoot)) return null;
-  return resolved;
-}
-
-async function listDiskImages() {
-  const folder = path.join(getUploadsRoot(), mediaFolder);
-  try {
-    const entries = await readdir(folder);
-    const images = [];
-    for (const filename of entries) {
-      const contentType = contentTypeFromName(filename);
-      if (!contentType) continue;
-      const filePath = path.join(folder, filename);
-      const info = await stat(filePath);
-      if (!info.isFile()) continue;
-      images.push({
-        name: filename,
-        url: `/uploads/${mediaFolder}/${filename}`,
-        contentType,
-        sizeBytes: info.size,
-        createdAt: info.birthtime.toISOString(),
-      });
-    }
-    return images;
-  } catch {
-    return [];
-  }
-}
-
-async function reconcileDiskImages() {
-  const diskImages = await listDiskImages();
-  if (diskImages.length === 0) return;
-
-  await updateStore((store) => {
-    let changed = false;
-    for (const diskImage of diskImages) {
-      if (store.gallery.some((image) => image.url === diskImage.url)) continue;
-      store.gallery.push({
-        id: nextNumericId(store.gallery),
-        name: diskImage.name,
-        url: diskImage.url,
-        caption: diskImage.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "),
-        category: "legacy-upload",
-        contentType: diskImage.contentType,
-        sizeBytes: diskImage.sizeBytes,
-        uploadedByUserId: null,
-        uploadedByName: "Existing upload",
-        sortOrder: store.gallery.length,
-        createdAt: diskImage.createdAt,
-        updatedAt: null,
-      });
-      changed = true;
-    }
-    return changed;
-  });
-}
-
 router.get("/list", requireAdmin, async (req, res): Promise<void> => {
   try {
-    await reconcileDiskImages();
     const store = await readStore();
     const search = typeof req.query.search === "string" ? req.query.search.trim().toLowerCase() : "";
     const media = [...store.gallery]
@@ -239,8 +167,9 @@ router.put("/:id", requireAdmin, async (req, res): Promise<void> => {
       return;
     }
     if (replacementUrl && previous) {
-      const oldPath = localPathFromUrl(previous.url);
-      if (oldPath) await unlink(oldPath).catch(() => undefined);
+      await deleteGridFsFileByUrl(previous.url).catch((error) => {
+        req.log.warn({ err: error, url: previous.url }, "Failed to delete old GridFS media");
+      });
     }
     res.json(toMediaResponse(updated));
   } catch (err) {
@@ -278,10 +207,9 @@ router.delete("/:id", requireAdmin, async (req, res): Promise<void> => {
       res.status(404).json({ error: "Media not found" });
       return;
     }
-    const filePath = localPathFromUrl(removed.url);
-    if (filePath) {
-      await unlink(filePath).catch(() => undefined);
-    }
+    await deleteGridFsFileByUrl(removed.url).catch((error) => {
+      req.log.warn({ err: error, url: removed.url }, "Failed to delete GridFS media");
+    });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Failed to delete admin media");

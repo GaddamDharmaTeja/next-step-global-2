@@ -1,15 +1,11 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const uploadsRoot = path.resolve(__dirname, "../../uploads");
+import { assertValidImageContentType, uploadBufferToGridFs } from "./gridfs";
 
 function sanitizeBaseName(filename: string): string {
   const base = path.parse(filename).name;
   const cleaned = base.replace(/[^a-zA-Z0-9-_]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-  return cleaned || "image";
+  return cleaned || "file";
 }
 
 function extensionFromMimeType(contentType: string): string | null {
@@ -44,12 +40,18 @@ function extensionFromDocumentMimeType(contentType: string): string | null {
   }
 }
 
+function gridFilename(filename: string, contentType: string, fallbackExtension: string) {
+  const extension = path.extname(filename) || fallbackExtension;
+  return `${Date.now()}-${randomBytes(4).toString("hex")}-${sanitizeBaseName(filename)}${extension}`;
+}
+
 export async function saveBase64Image(input: {
   filename: string;
   contentType: string;
   base64Data: string;
   folder: string;
 }): Promise<string> {
+  assertValidImageContentType(input.contentType);
   const extension = extensionFromMimeType(input.contentType);
   if (!extension) {
     throw new Error("Unsupported image type");
@@ -63,13 +65,18 @@ export async function saveBase64Image(input: {
     throw new Error("Uploaded image must be 15MB or smaller");
   }
 
-  const targetDir = path.join(uploadsRoot, input.folder);
-  await mkdir(targetDir, { recursive: true });
+  const uploaded = await uploadBufferToGridFs({
+    filename: gridFilename(input.filename, input.contentType, extension),
+    contentType: input.contentType,
+    buffer,
+    metadata: {
+      originalName: input.filename,
+      category: input.folder,
+      kind: "image",
+    },
+  });
 
-  const fileName = `${Date.now()}-${randomBytes(4).toString("hex")}-${sanitizeBaseName(input.filename)}${extension}`;
-  await writeFile(path.join(targetDir, fileName), buffer);
-
-  return `/uploads/${input.folder}/${fileName}`;
+  return uploaded.url;
 }
 
 export async function saveBase64Document(input: {
@@ -91,18 +98,19 @@ export async function saveBase64Document(input: {
     throw new Error("Uploaded document must be 20MB or smaller");
   }
 
-  const targetDir = path.join(uploadsRoot, input.folder);
-  await mkdir(targetDir, { recursive: true });
-
-  const fileName = `${Date.now()}-${randomBytes(4).toString("hex")}-${sanitizeBaseName(input.filename)}${extension}`;
-  await writeFile(path.join(targetDir, fileName), buffer);
+  const uploaded = await uploadBufferToGridFs({
+    filename: gridFilename(input.filename, input.contentType, extension),
+    contentType: input.contentType,
+    buffer,
+    metadata: {
+      originalName: input.filename,
+      category: input.folder,
+      kind: "document",
+    },
+  });
 
   return {
-    url: `/uploads/${input.folder}/${fileName}`,
-    sizeBytes: buffer.length,
+    url: uploaded.url,
+    sizeBytes: uploaded.sizeBytes,
   };
-}
-
-export function getUploadsRoot(): string {
-  return uploadsRoot;
 }

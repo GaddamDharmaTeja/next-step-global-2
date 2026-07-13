@@ -14,7 +14,7 @@ import {
   useListTestimonials,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
-import { applyImageFallback, assetUrl, withBasePath } from "@/lib/runtime";
+import { applyImageFallback, assetUrl } from "@/lib/runtime";
 import {
   ArrowRight,
   BookOpenCheck,
@@ -35,6 +35,7 @@ import {
 import { createAppointment, getSiteContent } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { PublicHeader } from "@/components/layout/public-header";
+import { useState } from "react";
 
 const inquirySchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -94,11 +95,66 @@ const processSteps = [
 ];
 
 const destinationDetails = [
-  { country: "United Kingdom", flag: "🇬🇧", intake: "Jan, May, Sep", tuition: "GBP 12k-28k", strength: "Fast masters, strong employability" },
-  { country: "United States", flag: "🇺🇸", intake: "Jan, Aug", tuition: "USD 18k-45k", strength: "Research and STEM pathways" },
-  { country: "Australia", flag: "🇦🇺", intake: "Feb, Jul", tuition: "AUD 22k-40k", strength: "Work rights, PR pathways" },
-  { country: "Canada", flag: "🇨🇦", intake: "Jan, May, Sep", tuition: "CAD 16k-35k", strength: "Affordable programs, immigration options" },
+  { country: "United Kingdom", flag: countryFlag("United Kingdom"), intake: "Jan, May, Sep", tuition: "GBP 12k-28k", strength: "Fast masters, strong employability" },
+  { country: "United States", flag: countryFlag("United States"), intake: "Jan, Aug", tuition: "USD 18k-45k", strength: "Research and STEM pathways" },
+  { country: "Australia", flag: countryFlag("Australia"), intake: "Feb, Jul", tuition: "AUD 22k-40k", strength: "Work rights, PR pathways" },
+  { country: "Canada", flag: countryFlag("Canada"), intake: "Jan, May, Sep", tuition: "CAD 16k-35k", strength: "Affordable programs, immigration options" },
 ];
+
+function flagEmoji(code: string) {
+  return String.fromCodePoint(
+    ...code.toUpperCase().split("").map((letter) => 127397 + letter.charCodeAt(0)),
+  );
+}
+
+function countryFlag(country?: string | null) {
+  const value = String(country || "").toLowerCase();
+  if (/\b(usa|united states|america)\b/.test(value)) return flagEmoji("US");
+  if (/\b(uk|united kingdom|britain|england)\b/.test(value)) return flagEmoji("GB");
+  if (value.includes("canada")) return flagEmoji("CA");
+  if (value.includes("australia")) return flagEmoji("AU");
+  if (value.includes("france")) return flagEmoji("FR");
+  if (value.includes("germany")) return flagEmoji("DE");
+  if (value.includes("netherlands")) return flagEmoji("NL");
+  if (value.includes("ireland")) return flagEmoji("IE");
+  if (value.includes("spain")) return flagEmoji("ES");
+  if (value.includes("europe")) return flagEmoji("EU");
+  if (value.includes("new zealand")) return flagEmoji("NZ");
+  return flagEmoji("GB");
+}
+
+function ProgramImage({
+  imageUrl,
+  title,
+  country,
+}: {
+  imageUrl?: string | null;
+  title: string;
+  country: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  const flag = countryFlag(country);
+
+  if (imageUrl && !failed) {
+    return (
+      <img
+        src={assetUrl(imageUrl)}
+        alt={title}
+        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#eef4ff_0%,#f8fafc_54%,#fff7e0_100%)]">
+      <div className="text-center">
+        <div className="text-6xl leading-none">{flag}</div>
+        <div className="mt-4 text-sm font-bold uppercase tracking-[0.22em] text-[#0e2f6d]">{country}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage() {
   const { data: programs } = useListPrograms();
@@ -153,7 +209,7 @@ export default function HomePage() {
   const featuredPrograms = [
     ...pinnedPrograms,
     ...programsList.filter((p) => !pinnedPrograms.some((featured) => featured.id === p.id)),
-  ].slice(0, 3);
+  ];
   const featuredTestimonials = testimonialsList.filter((t) => t.featured) || testimonialsList.slice(0, 3) || [];
   const metrics = Array.isArray(content?.metrics) ? content.metrics : [];
   const serviceIcons = [HandHeart, Globe2, ShieldCheck];
@@ -170,22 +226,28 @@ export default function HomePage() {
 
       <section
         id="home"
-        className="relative min-h-[calc(100vh-80px)] overflow-hidden border-b-[28px] border-[#d9a31a] bg-[#09172f] pt-28 sm:pt-32"
+        className="relative min-h-[calc(100vh-80px)] overflow-hidden border-b-[28px] border-[#d9a31a] bg-[radial-gradient(circle_at_74%_38%,rgba(217,163,26,0.16),transparent_18rem),linear-gradient(135deg,#041532_0%,#092354_48%,#031126_100%)] pt-28 sm:pt-32"
       >
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-45"
-          style={{ backgroundImage: `url(${withBasePath("/hero-student.jpg")})` }}
-        />
+        {content?.heroBackgroundImage && (
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-45"
+            style={{ backgroundImage: `url(${assetUrl(content.heroBackgroundImage)})` }}
+          />
+        )}
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(9,23,47,0.88),rgba(14,47,109,0.82))]" />
 
-        <div className="relative mx-auto flex min-h-[calc(100vh-108px)] max-w-7xl items-center px-5 py-16 lg:px-8">
+        <div className="relative mx-auto grid min-h-[calc(100vh-108px)] max-w-7xl items-center gap-10 px-5 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
           <div className="max-w-3xl text-white">
             <h1 className="font-serif text-6xl font-bold leading-[1.05] md:text-7xl lg:text-8xl">
               {content?.heroTitle || "Your global future"} <span className="text-[#e0b43b]">{content?.heroAccent || "starts here."}</span>
             </h1>
-            <p className="mt-8 max-w-2xl text-left text-xl leading-8 text-white md:text-2xl">
-              {content?.heroSubtitle || "We do not just process visas; we architect futures. Partner with passionate mentors dedicated to guiding you to the world's top universities."}
-            </p>
+            <div className="mt-8 max-w-2xl space-y-5 text-left text-xl leading-8 text-white/90 md:text-2xl">
+              {(content?.heroSubtitle || "We do not just process visas; we architect futures. Partner with passionate mentors dedicated to guiding you to the world's top universities.")
+                .split(/\n{2,}/)
+                .map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+            </div>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Button
@@ -205,6 +267,16 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
+          {content?.heroRightImage && (
+            <div className="relative hidden min-h-[520px] lg:block">
+              <img
+                src={assetUrl(content.heroRightImage)}
+                alt=""
+                className="absolute bottom-[-4rem] right-[-5rem] max-h-[720px] w-auto max-w-[120%] object-contain drop-shadow-[0_32px_70px_rgba(0,0,0,0.45)]"
+                onError={applyImageFallback}
+              />
+            </div>
+          )}
         </div>
       </section>
 
@@ -314,19 +386,9 @@ export default function HomePage() {
               <div key={prog.id} className="h-full min-w-0">
                 <Card className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_14px_38px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:border-[#d9a31a]/45 hover:shadow-[0_22px_52px_rgba(15,23,42,0.1)]">
                   <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-[#f4f7fb]">
-                    {prog.imageUrl ? (
-                      <img
-                        src={assetUrl(prog.imageUrl)}
-                        alt={prog.title}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        onError={applyImageFallback}
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#f8fafc,#eef3f9)] text-[#101b31]">
-                        <Globe2 className="h-12 w-12 opacity-20" />
-                      </div>
-                    )}
+                    <ProgramImage imageUrl={prog.imageUrl} title={prog.title} country={prog.country} />
                     <div className="absolute left-5 top-5 max-w-[calc(100%-2.5rem)] rounded-lg bg-white/95 px-4 py-2 text-sm font-bold uppercase leading-5 text-[#101b31] shadow-sm backdrop-blur">
+                      <span className="mr-2" aria-hidden="true">{countryFlag(prog.country)}</span>
                       {prog.country}
                     </div>
                   </div>
@@ -675,7 +737,7 @@ export default function HomePage() {
           <div className="md:col-span-2">
             <div className="flex items-center gap-3">
               <img
-                src={withBasePath("/nextstep-logo.png")}
+                src={assetUrl(content?.brandLogoUrl || "/nextstep-logo.png")}
                 alt="NextStep Global Educational Services"
                 className="h-14 w-auto rounded-xl bg-white p-1.5 object-contain"
               />

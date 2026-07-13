@@ -322,6 +322,9 @@ export interface SiteContentRecord {
   heroTitle: string;
   heroAccent: string;
   heroSubtitle: string;
+  brandLogoUrl?: string | null;
+  heroBackgroundImage?: string | null;
+  heroRightImage?: string | null;
   primaryCta: string;
   secondaryCta: string;
   metrics: Array<{ value: string; label: string }>;
@@ -489,6 +492,9 @@ function normalizeConsultantRecord(record: ConsultantRecord): ConsultantRecord {
 function normalizeSiteContentRecord(record: SiteContentRecord): SiteContentRecord {
   return {
     ...record,
+    brandLogoUrl: asString(record.brandLogoUrl) || null,
+    heroBackgroundImage: asString(record.heroBackgroundImage) || null,
+    heroRightImage: asString(record.heroRightImage) || null,
     metrics: Array.isArray(record.metrics)
       ? record.metrics
           .map((metric) => ({

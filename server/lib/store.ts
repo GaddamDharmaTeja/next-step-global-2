@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { MongoClient, type Collection } from "mongodb";
+import { MongoClient, type Collection, type Db } from "mongodb";
 
 export type UserRole = "user" | "admin" | "manager" | "owner";
 export type InquiryStatus = "pending" | "contacted" | "resolved";
@@ -184,6 +184,9 @@ export interface SiteContentRecord {
   heroTitle: string;
   heroAccent: string;
   heroSubtitle: string;
+  brandLogoUrl: string | null;
+  heroBackgroundImage: string | null;
+  heroRightImage: string | null;
   primaryCta: string;
   secondaryCta: string;
   metrics: SiteMetricRecord[];
@@ -911,12 +914,15 @@ const seedStore: AppStore = {
     },
   ],
   siteContent: {
-    heroTitle: "Start Your Learning Journey",
-    heroAccent: "Now",
+    heroTitle: "future",
+    heroAccent: "starts here.",
     heroSubtitle:
-      "NextStep Global is a reliable student service provider committed to guiding ambitious learners, strengthening their education portfolio, and unlocking worldwide opportunities.",
-    primaryCta: "Apply Now",
-    secondaryCta: "Explore Destinations",
+      "At NextStep Global Educational Services, we provide personalized guidance for students aspiring to study abroad. From university selection and admissions to scholarship assistance, visa processing, and pre-departure support, we're with you every step of the way.\n\nWe don't just process applications - we help shape your future. Partner with experienced mentors dedicated to guiding you toward the world's leading universities.",
+    brandLogoUrl: "/nextstep-logo.png",
+    heroBackgroundImage: null,
+    heroRightImage: null,
+    primaryCta: "Get Free Assessment",
+    secondaryCta: "Explore Services",
     metrics: [
       { value: "9394+", label: "Enrolled Learners" },
       { value: "534+", label: "Universities" },
@@ -1249,7 +1255,13 @@ function isMongoEnabled(): boolean {
   return Boolean(process.env.MONGODB_URI?.trim());
 }
 
-async function getMongoCollection(): Promise<Collection<MongoStoreDocument>> {
+export function requireMongoEnabled(): void {
+  if (!isMongoEnabled()) {
+    throw new Error("MongoDB is required for file storage. Set MONGODB_URI before uploading files.");
+  }
+}
+
+export async function getMongoDb(): Promise<Db> {
   const uri = process.env.MONGODB_URI?.trim();
   if (!uri) {
     throw new Error("MONGODB_URI is not configured");
@@ -1260,7 +1272,12 @@ async function getMongoCollection(): Promise<Collection<MongoStoreDocument>> {
   }
 
   const client = await mongoClientPromise;
-  return client.db(mongoDatabaseName).collection<MongoStoreDocument>(mongoCollectionName);
+  return client.db(mongoDatabaseName);
+}
+
+async function getMongoCollection(): Promise<Collection<MongoStoreDocument>> {
+  const db = await getMongoDb();
+  return db.collection<MongoStoreDocument>(mongoCollectionName);
 }
 
 function normalizeStore(store: AppStore): boolean {
@@ -1338,6 +1355,18 @@ function normalizeStore(store: AppStore): boolean {
   }
   if (!store.siteContent.footerTagline) {
     store.siteContent.footerTagline = cloneStore(seedStore).siteContent.footerTagline;
+    changed = true;
+  }
+  if (store.siteContent.brandLogoUrl === undefined) {
+    store.siteContent.brandLogoUrl = cloneStore(seedStore).siteContent.brandLogoUrl;
+    changed = true;
+  }
+  if (store.siteContent.heroBackgroundImage === undefined) {
+    store.siteContent.heroBackgroundImage = cloneStore(seedStore).siteContent.heroBackgroundImage;
+    changed = true;
+  }
+  if (store.siteContent.heroRightImage === undefined) {
+    store.siteContent.heroRightImage = cloneStore(seedStore).siteContent.heroRightImage;
     changed = true;
   }
   if (!store.appointments) {

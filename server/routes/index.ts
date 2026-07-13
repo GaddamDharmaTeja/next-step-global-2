@@ -25,6 +25,7 @@ import messagesRouter from "./messages";
 import chatRouter from "./chat";
 import remindersRouter from "./reminders";
 import adminMediaRouter from "./admin-media";
+import imagesRouter from "./images";
 
 const router: IRouter = Router();
 
@@ -53,6 +54,7 @@ router.use("/owner-settings", ownerSettingsRouter);
 router.use("/audit-logs", auditLogsRouter);
 router.use("/admin-invites", adminInvitesRouter);
 router.use("/admin/media", adminMediaRouter);
+router.use("/images", imagesRouter);
 router.use("/admin", adminRouter);
 
 export default router;
