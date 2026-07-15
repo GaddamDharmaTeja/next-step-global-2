@@ -397,8 +397,16 @@
     text-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
   }
 
-  .home-hero__title span {
+  .home-hero__title-line {
     display: block;
+  }
+
+  .home-hero__title-line--accent {
+    white-space: nowrap;
+  }
+
+  .home-hero__title-line--accent .home-hero__title-gold + .home-hero__title-gold {
+    margin-left: 0.18em;
   }
 
   .home-hero__title-white {
@@ -521,7 +529,7 @@
   .home-hero__image {
     position: absolute;
     right: 10px;
-    bottom: 36px;
+    bottom: 18px;
     z-index: 2;
     width: min(45vw, 650px);
     max-width: none;

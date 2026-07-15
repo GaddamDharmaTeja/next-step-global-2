@@ -38,11 +38,13 @@ export function HeroSection({ content }: HeroSectionProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            <span>
-              <span className="home-hero__title-white">future</span>{" "}
-              <span className="home-hero__title-gold">starts</span>
+            <span className="home-hero__title-line">
+              <span className="home-hero__title-white">future</span>
             </span>
-            <span className="home-hero__title-gold">here.</span>
+            <span className="home-hero__title-line home-hero__title-line--accent">
+              <span className="home-hero__title-gold">starts</span>
+              <span className="home-hero__title-gold">here.</span>
+            </span>
           </motion.h1>
 
           <motion.div
