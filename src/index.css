@@ -372,10 +372,10 @@
     position: relative;
     z-index: 1;
     display: flex;
-    min-height: calc(max(100vh, 850px) - 150px);
+    min-height: calc(max(100vh, 850px) - 220px);
     max-width: 1400px;
     margin: 0 auto;
-    padding: 120px 60px 28px;
+    padding: 104px 60px 16px;
     align-items: center;
     gap: 44px;
   }
@@ -521,7 +521,7 @@
   .home-hero__image {
     position: absolute;
     right: 10px;
-    bottom: 68px;
+    bottom: 36px;
     z-index: 2;
     width: min(45vw, 650px);
     max-width: none;
@@ -540,7 +540,7 @@
     display: grid;
     width: min(calc(100% - 88px), 1400px);
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    margin: 0 auto 44px;
+    margin: -8px auto 24px;
     transform: none;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.08);
