@@ -7,19 +7,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateInquiry } from "@workspace/api-client-react";
 import { createAppointment, getSiteContent } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-
-const inquirySchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Valid email required"),
-  phone: z.string().min(5, "Phone number required"),
-  whatsapp: z.string().optional(),
-  subject: z.string().min(2, "Subject is required"),
-  message: z.string().min(10, "Please provide more details"),
-});
 
 const appointmentSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -33,33 +23,12 @@ const appointmentSchema = z.object({
 
 export default function ContactPage() {
   const { data: content } = useQuery({ queryKey: ["/api/site-content"], queryFn: getSiteContent });
-  const createInquiry = useCreateInquiry();
   const { toast } = useToast();
-
-  const form = useForm<z.infer<typeof inquirySchema>>({
-    resolver: zodResolver(inquirySchema),
-    defaultValues: { name: "", email: "", phone: "", whatsapp: "", subject: "", message: "" },
-  });
 
   const appointmentForm = useForm<z.infer<typeof appointmentSchema>>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: { name: "", email: "", phone: "", destination: "", preferredDate: "", preferredTime: "", notes: "" },
   });
-
-  const onSubmit = (values: z.infer<typeof inquirySchema>) => {
-    createInquiry.mutate(
-      { data: values },
-      {
-        onSuccess: () => {
-          toast({ title: "Inquiry submitted successfully!", description: "We will contact you soon." });
-          form.reset();
-        },
-        onError: () => {
-          toast({ title: "Failed to submit inquiry", variant: "destructive" });
-        },
-      },
-    );
-  };
 
   const onAppointmentSubmit = async (values: z.infer<typeof appointmentSchema>) => {
     try {
@@ -157,36 +126,6 @@ export default function ContactPage() {
               </Form>
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-[#f4f7fb] p-6 shadow-sm md:p-9">
-              <h3 className="font-serif text-3xl font-bold text-[#07162f]">Request a Callback</h3>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="mt-7 space-y-5">
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <FormField control={form.control} name="name" render={({ field }) => (
-                      <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input className="bg-white" placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="email" render={({ field }) => (
-                      <FormItem><FormLabel>Email</FormLabel><FormControl><Input className="bg-white" type="email" placeholder="john@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="phone" render={({ field }) => (
-                      <FormItem><FormLabel>Phone</FormLabel><FormControl><Input className="bg-white" placeholder="+91 ..." {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="whatsapp" render={({ field }) => (
-                      <FormItem><FormLabel>WhatsApp</FormLabel><FormControl><Input className="bg-white" placeholder="Optional" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                  </div>
-                  <FormField control={form.control} name="subject" render={({ field }) => (
-                    <FormItem><FormLabel>Subject</FormLabel><FormControl><Input className="bg-white" placeholder="What do you need help with?" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="message" render={({ field }) => (
-                    <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea className="bg-white" rows={4} placeholder="Tell us about your plan..." {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <Button type="submit" size="lg" className="h-14 w-full rounded-md border border-[#121d32] bg-[#101b31] text-lg font-semibold text-white shadow-none hover:bg-[#0b1427]" disabled={createInquiry.isPending}>
-                    {createInquiry.isPending ? "Submitting..." : "Request Callback"}
-                  </Button>
-                </form>
-              </Form>
-            </div>
           </div>
         </div>
       </section>

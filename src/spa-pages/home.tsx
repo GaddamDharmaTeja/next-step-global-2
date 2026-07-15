@@ -8,13 +8,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  useCreateInquiry,
   useListGalleryImages,
   useListPrograms,
   useListTestimonials,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
-import { applyImageFallback, assetUrl } from "@/lib/runtime";
+import { assetUrl } from "@/lib/runtime";
 import {
   ArrowRight,
   BookOpenCheck,
@@ -35,16 +34,8 @@ import {
 import { createAppointment, getSiteContent } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { PublicHeader } from "@/components/layout/public-header";
+import { HeroSection } from "@/components/hero/HeroSection";
 import { useState } from "react";
-
-const inquirySchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Valid email required"),
-  phone: z.string().min(5, "Phone number required"),
-  whatsapp: z.string().optional(),
-  subject: z.string().min(2, "Subject is required"),
-  message: z.string().min(10, "Please provide more details"),
-});
 
 const appointmentSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -161,32 +152,12 @@ export default function HomePage() {
   const { data: testimonials } = useListTestimonials();
   const { data: gallery } = useListGalleryImages();
   const { data: content } = useQuery({ queryKey: ["/api/site-content"], queryFn: getSiteContent });
-  const createInquiry = useCreateInquiry();
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof inquirySchema>>({
-    resolver: zodResolver(inquirySchema),
-    defaultValues: { name: "", email: "", phone: "", whatsapp: "", subject: "", message: "" },
-  });
   const appointmentForm = useForm<z.infer<typeof appointmentSchema>>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: { name: "", email: "", phone: "", destination: "", preferredDate: "", preferredTime: "", notes: "" },
   });
-
-  const onSubmit = (values: z.infer<typeof inquirySchema>) => {
-    createInquiry.mutate(
-      { data: values },
-      {
-        onSuccess: () => {
-          toast({ title: "Inquiry submitted successfully!", description: "We will contact you soon." });
-          form.reset();
-        },
-        onError: () => {
-          toast({ title: "Failed to submit inquiry", variant: "destructive" });
-        },
-      },
-    );
-  };
 
   const onAppointmentSubmit = async (values: z.infer<typeof appointmentSchema>) => {
     try {
@@ -224,61 +195,7 @@ export default function HomePage() {
     <div className="modern-page-shell">
       <PublicHeader active="home" variant="overlay" />
 
-      <section
-        id="home"
-        className="relative min-h-[calc(100vh-80px)] overflow-hidden border-b-[28px] border-[#d9a31a] bg-[radial-gradient(circle_at_74%_38%,rgba(217,163,26,0.16),transparent_18rem),linear-gradient(135deg,#041532_0%,#092354_48%,#031126_100%)] pt-28 sm:pt-32"
-      >
-        {content?.heroBackgroundImage && (
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-45"
-            style={{ backgroundImage: `url(${assetUrl(content.heroBackgroundImage)})` }}
-          />
-        )}
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(9,23,47,0.88),rgba(14,47,109,0.82))]" />
-
-        <div className="relative mx-auto grid min-h-[calc(100vh-108px)] max-w-7xl items-center gap-10 px-5 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-          <div className="max-w-3xl text-white">
-            <h1 className="font-serif text-6xl font-bold leading-[1.05] md:text-7xl lg:text-8xl">
-              {content?.heroTitle || "Your global future"} <span className="text-[#e0b43b]">{content?.heroAccent || "starts here."}</span>
-            </h1>
-            <div className="mt-8 max-w-2xl space-y-5 text-left text-xl leading-8 text-white/90 md:text-2xl">
-              {(content?.heroSubtitle || "We do not just process visas; we architect futures. Partner with passionate mentors dedicated to guiding you to the world's top universities.")
-                .split(/\n{2,}/)
-                .map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-            </div>
-
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <Button
-                size="lg"
-                className="h-14 rounded-md border border-[#d9a31a] bg-[#d9a31a] px-8 text-lg font-semibold text-[#081120] shadow-none hover:bg-[#c79414]"
-                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-              >
-                {content?.primaryCta || "Get Free Assessment"}
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-14 rounded-md border-white/35 bg-transparent px-8 text-lg font-semibold text-white shadow-none hover:bg-white/10 hover:text-white"
-                onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
-              >
-                {content?.secondaryCta || "Explore Services"}
-              </Button>
-            </div>
-          </div>
-          {content?.heroRightImage && (
-            <div className="relative hidden min-h-[520px] lg:block">
-              <img
-                src={assetUrl(content.heroRightImage)}
-                alt=""
-                className="absolute bottom-[-4rem] right-[-5rem] max-h-[720px] w-auto max-w-[120%] object-contain drop-shadow-[0_32px_70px_rgba(0,0,0,0.45)]"
-                onError={applyImageFallback}
-              />
-            </div>
-          )}
-        </div>
-      </section>
+      <HeroSection content={content} />
 
       <section className="bg-[linear-gradient(90deg,#0e2f6d_0%,#173f86_52%,#d9a31a_100%)] py-14 text-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-white/20 px-5 text-center md:grid-cols-4 lg:px-8">
@@ -691,43 +608,6 @@ export default function HomePage() {
               </Form>
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-[#f4f7fb] p-6 shadow-sm md:p-9">
-              <h3 className="font-serif text-3xl font-bold text-[#07162f]">Request a Callback</h3>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="mt-7 space-y-5">
-                <div className="grid gap-5 md:grid-cols-2">
-                  <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input className="bg-white" placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="email" render={({ field }) => (
-                    <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input className="bg-white" placeholder="john@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                </div>
-                <div className="grid gap-5 md:grid-cols-2">
-                  <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input className="bg-white" placeholder="+91 98765 43210" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="whatsapp" render={({ field }) => (
-                    <FormItem><FormLabel>WhatsApp</FormLabel><FormControl><Input className="bg-white" placeholder="+91 98765 43210" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                </div>
-                <FormField control={form.control} name="subject" render={({ field }) => (
-                  <FormItem><FormLabel>Interested Destination</FormLabel><FormControl><Input className="bg-white" placeholder="Masters in Canada" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="message" render={({ field }) => (
-                  <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea className="bg-white" placeholder="Tell us about your background and goals..." rows={4} {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="h-14 w-full rounded-md border border-[#121d32] bg-[#e4aa19] text-lg font-semibold text-black shadow-none hover:bg-[#d89e12]"
-                  disabled={createInquiry.isPending}
-                >
-                  {createInquiry.isPending ? "Submitting..." : "Submit Inquiry"}
-                </Button>
-              </form>
-            </Form>
-            </div>
           </div>
         </div>
       </section>

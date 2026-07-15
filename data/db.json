@@ -14,21 +14,52 @@
   "programs": [
     {
       "id": 1,
-      "title": "MBA in Canada",
-      "description": "Career-focused MBA pathways in top Canadian business schools.",
-      "country": "Canada",
+      "title": "MS in Computer Science",
+      "description": "A practical STEM pathway for students targeting software engineering, AI, data, and research-led technology careers.",
+      "country": "USA",
       "duration": "2 Years",
-      "imageUrl": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?q=80&w=1200&auto=format&fit=crop",
+      "imageUrl": "/uploads/gallery/1783010633669-7cfdab03-134274394406436813.jpg",
+      "tuitionFee": "USD 20,000 - 50,000 per year",
+      "intakeMonths": [
+        "January",
+        "May",
+        "August",
+        "September"
+      ],
+      "scholarshipAvailable": true,
       "featured": true,
       "createdAt": "2026-05-12T00:00:00.000Z"
     },
     {
       "id": 2,
-      "title": "MS in Australia",
-      "description": "Industry-aligned postgraduate programs with strong internship options.",
-      "country": "Australia",
-      "duration": "2 Years",
-      "imageUrl": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1200&auto=format&fit=crop",
+      "title": "MBA (Master of Business Administration)",
+      "description": "A focused business pathway for leadership, finance, operations, analytics, and global management careers.",
+      "country": "UK",
+      "duration": "1 Year",
+      "imageUrl": "/uploads/gallery/1782743261357-e936cfd1-ChatGPT-Image-Jun-28-2026-01_16_15-PM.png",
+      "tuitionFee": "GBP 15,000 - 40,000 per year",
+      "intakeMonths": [
+        "January",
+        "September"
+      ],
+      "scholarshipAvailable": true,
+      "featured": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "title": "MSc International Business Management",
+      "description": "A multi-country business pathway for students planning international careers across Europe and global markets.",
+      "country": "France, Germany, Netherlands, Ireland, and Spain",
+      "duration": "1 - 2 Years",
+      "imageUrl": "/uploads/gallery/1783010633669-7cfdab03-134274394406436813.jpg",
+      "tuitionFee": "EUR 10,000 - 30,000 per year",
+      "intakeMonths": [
+        "February",
+        "September",
+        "October"
+      ],
+      "scholarshipAvailable": true,
       "featured": true,
       "createdAt": "2026-05-12T00:00:00.000Z"
     }
@@ -266,12 +297,12 @@
     }
   ],
   "siteContent": {
-    "heroTitle": "future",
+    "heroTitle": "Your global\nfuture",
     "heroAccent": "starts here.",
     "heroSubtitle": "At NextStep Global Educational Services, we provide personalized guidance for students aspiring to study abroad. From university selection and admissions to scholarship assistance, visa processing, and pre-departure support, we're with you every step of the way.\n\nWe don't just process applications - we help shape your future. Partner with experienced mentors dedicated to guiding you toward the world's leading universities.",
     "brandLogoUrl": "/nextstep-logo.png",
     "heroBackgroundImage": null,
-    "heroRightImage": null,
+    "heroRightImage": "/right-side-hero-illustration.png",
     "primaryCta": "Get Free Assessment",
     "secondaryCta": "Explore Services",
     "metrics": [

@@ -41,5 +41,6 @@ The migration scans stored data for legacy `/uploads/...` URLs, uploads existing
 
 - Do not rely on persistent local disk for uploads.
 - The `uploads/` directory is only needed temporarily until the migration has run.
+- Legacy `/uploads/...` URLs are served read-only as a compatibility fallback until migration is complete.
 - Back up the database and the legacy `uploads/` folder before running the migration in production.
 - After migration, new uploads no longer need `uploads/` to exist.

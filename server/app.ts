@@ -3,6 +3,7 @@ import cors from "cors";
 import { pinoHttp } from "pino-http";
 import cookieParser from "cookie-parser";
 import router from "./routes";
+import legacyUploadsRouter from "./routes/legacy-uploads";
 import { logger } from "./lib/logger";
 import { attachAuthUser, getCookieSecret } from "./lib/auth";
 
@@ -53,6 +54,7 @@ app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(attachAuthUser);
 
+app.use("/uploads", legacyUploadsRouter);
 app.use("/api", router);
 
 export default app;
