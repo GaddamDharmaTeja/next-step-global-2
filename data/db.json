@@ -7,7 +7,11 @@
       "name": "NextStep Admin",
       "phone": null,
       "role": "admin",
-      "createdAt": "2026-05-12T00:00:00.000Z"
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "positionId": null,
+      "positionName": null,
+      "reportsToUserId": null,
+      "reportsToName": null
     }
   ],
   "inquiries": [],
@@ -28,7 +32,11 @@
       ],
       "scholarshipAvailable": true,
       "featured": true,
-      "createdAt": "2026-05-12T00:00:00.000Z"
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "eligibility": null,
+      "englishRequirement": null,
+      "applicationDeadline": null,
+      "careerOutcomes": []
     },
     {
       "id": 2,
@@ -44,7 +52,11 @@
       ],
       "scholarshipAvailable": true,
       "featured": true,
-      "createdAt": "2026-05-12T00:00:00.000Z"
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "eligibility": null,
+      "englishRequirement": null,
+      "applicationDeadline": null,
+      "careerOutcomes": []
     },
     {
       "id": 3,
@@ -61,7 +73,11 @@
       ],
       "scholarshipAvailable": true,
       "featured": true,
-      "createdAt": "2026-05-12T00:00:00.000Z"
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "eligibility": null,
+      "englishRequirement": null,
+      "applicationDeadline": null,
+      "careerOutcomes": []
     }
   ],
   "gallery": [],
@@ -364,7 +380,42 @@
     "contactText": "Contact us today for admission guidance, destination selection, and visa preparation support.",
     "contactEmail": "hello@nextstepglobal.net",
     "contactPhone": "+8801758 580909",
-    "footerTagline": "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities."
+    "footerTagline": "NextStep Global is a London-based education consultancy dedicated to linking international students with prestigious global universities.",
+    "faqs": [
+      {
+        "question": "Can I apply without IELTS?",
+        "answer": "Some universities accept MOI, Duolingo, PTE, or internal English assessment. It depends on the country, university, and program."
+      },
+      {
+        "question": "When should I start my study abroad application?",
+        "answer": "Start at least 6-9 months before your target intake so there is enough time for shortlisting, documents, applications, funding planning, and visa preparation."
+      },
+      {
+        "question": "Do you help with funding options?",
+        "answer": "Yes. We help identify early application discounts, fee waivers, assistantships, and university-specific funding options."
+      },
+      {
+        "question": "What documents are usually required?",
+        "answer": "Common documents include transcripts, passport, English test score, SOP, LORs, resume, financial proof, and country-specific visa documents."
+      }
+    ],
+    "intakeTimeline": [
+      {
+        "intake": "January 2026",
+        "deadline": "Apply by August - October 2025",
+        "description": "Best for students who already have documents ready and want an early-year start."
+      },
+      {
+        "intake": "May 2026",
+        "deadline": "Apply by December 2025 - February 2026",
+        "description": "Useful for students waiting for final semester results or English test scores."
+      },
+      {
+        "intake": "September 2026",
+        "deadline": "Apply by March - June 2026",
+        "description": "Major intake with the widest university and funding availability."
+      }
+    ]
   },
   "appointments": [],
   "ownerSettings": {
@@ -393,6 +444,33 @@
       "channel": "both",
       "subject": "Document checklist reminder",
       "message": "Hi {{name}},\n\nThis is a reminder to upload your pending documents so we can continue your application process.",
+      "updatedAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": "welcome-email-1784215272319-h7rfta",
+      "name": "Welcome Follow Up",
+      "channel": "email",
+      "purpose": "general",
+      "subject": "Your NextStep consultation request",
+      "message": "Hi {{name}},\n\nThank you for reaching out. Our team will review your goals and contact you shortly.\n\nRegards,\nNextStep",
+      "updatedAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": "inquiry-email-reply",
+      "name": "Inquiry Email Reply",
+      "channel": "email",
+      "purpose": "inquiry_email",
+      "subject": "NextStep Global - {{subject}}",
+      "message": "Hi {{name}},\n\nThank you for contacting NextStep Global.\nWe received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, funding planning, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
+      "updatedAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": "inquiry-whatsapp-reply",
+      "name": "Inquiry WhatsApp Reply",
+      "channel": "whatsapp",
+      "purpose": "inquiry_whatsapp",
+      "subject": "NextStep Global inquiry reply",
+      "message": "Hi {{name}},\n\nThank you for contacting NextStep Global. We received your inquiry about \"{{subject}}\".\n\nOur counselor will guide you with course selection, admission process, funding planning, visa documentation, and next steps.\n\nPlease share your preferred study destination, current qualification, and intake timeline so we can assist you better.\n\nRegards,\nNextStep Global",
       "updatedAt": "2026-05-12T00:00:00.000Z"
     }
   ],
@@ -461,5 +539,757 @@
       "sortOrder": 3,
       "createdAt": "2026-05-12T00:00:00.000Z"
     }
-  ]
+  ],
+  "userPositions": [
+    {
+      "id": "senior-counselor",
+      "name": "Senior Counselor",
+      "level": 2,
+      "description": "Handles counseling ownership, student follow-up, and application planning.",
+      "reportsToPositionId": null,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": "document-reviewer",
+      "name": "Document Reviewer",
+      "level": 3,
+      "description": "Reviews uploaded student documents and keeps checklist status updated.",
+      "reportsToPositionId": "senior-counselor",
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    }
+  ],
+  "cmsPages": [
+    {
+      "id": "cms-home",
+      "title": "Home",
+      "slug": "home",
+      "url": "/",
+      "seo": {
+        "metaTitle": "Home | NextStep Global",
+        "metaDescription": "Explore practical study pathways built around your academic profile, budget, and long-term career plans.",
+        "metaKeywords": "NextStep Global, Home, study abroad, education services",
+        "seoImage": "/nextstep-logo.png"
+      },
+      "hero": {
+        "title": "Your global future starts here.",
+        "subtitle": "Explore world-class education opportunities across top destinations.",
+        "description": "Explore practical study pathways built around your academic profile, budget, and long-term career plans.",
+        "backgroundImage": "/hero-student.jpg",
+        "backgroundVideo": null,
+        "primaryButtonText": "Ask an Advisor",
+        "primaryButtonLink": "/contact",
+        "secondaryButtonText": "Explore Programs",
+        "secondaryButtonLink": "/programs",
+        "visible": true
+      },
+      "sections": [
+        {
+          "id": "section-home-overview",
+          "title": "Home",
+          "subtitle": "Explore world-class education opportunities across top destinations.",
+          "richText": "Explore practical study pathways built around your academic profile, budget, and long-term career plans.",
+          "images": [],
+          "videos": [],
+          "icons": [],
+          "buttonText": "Talk to Advisor",
+          "buttonLink": "/contact",
+          "backgroundColor": "#ffffff",
+          "order": 1,
+          "enabled": true
+        }
+      ],
+      "cards": [
+        {
+          "id": "card-home-1",
+          "image": null,
+          "icon": "University",
+          "title": "Global Universities",
+          "description": "Top ranked institutions matched to your profile.",
+          "link": "/contact",
+          "order": 1,
+          "active": true
+        },
+        {
+          "id": "card-home-2",
+          "image": null,
+          "icon": "Users",
+          "title": "Expert Advisors",
+          "description": "One-to-one personalized admission guidance.",
+          "link": "/contact",
+          "order": 2,
+          "active": true
+        },
+        {
+          "id": "card-home-3",
+          "image": null,
+          "icon": "Shield",
+          "title": "Visa Assistance",
+          "description": "Documentation and readiness support.",
+          "link": "/contact",
+          "order": 3,
+          "active": true
+        }
+      ],
+      "faqs": [
+        {
+          "id": "faq-home-1",
+          "question": "How can NextStep Global help with home?",
+          "answer": "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+          "order": 1
+        }
+      ],
+      "testimonials": [],
+      "gallery": [],
+      "cta": {
+        "heading": "Not sure what to choose?",
+        "description": "Our experts can help you compare options and create a practical application roadmap.",
+        "buttonText": "Talk to Advisor",
+        "buttonLink": "/contact",
+        "backgroundColor": "#07162f"
+      },
+      "footerText": "NextStep Global Educational Services helps students plan practical international education pathways.",
+      "status": "published",
+      "scheduledPublishAt": null,
+      "visible": true,
+      "versionHistory": [],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms-services",
+      "title": "Services",
+      "slug": "services",
+      "url": "/services",
+      "seo": {
+        "metaTitle": "Services | NextStep Global",
+        "metaDescription": "Manage every service page section, card, FAQ, testimonial, gallery item, CTA, and SEO setting from the CMS.",
+        "metaKeywords": "NextStep Global, Services, study abroad, education services",
+        "seoImage": "/nextstep-logo.png"
+      },
+      "hero": {
+        "title": "Study abroad services built around your goals.",
+        "subtitle": "Admissions, funding, visa, and pre-departure support in one managed flow.",
+        "description": "Manage every service page section, card, FAQ, testimonial, gallery item, CTA, and SEO setting from the CMS.",
+        "backgroundImage": null,
+        "backgroundVideo": null,
+        "primaryButtonText": "Ask an Advisor",
+        "primaryButtonLink": "/contact",
+        "secondaryButtonText": "Explore Programs",
+        "secondaryButtonLink": "/programs",
+        "visible": true
+      },
+      "sections": [
+        {
+          "id": "section-services-overview",
+          "title": "Services",
+          "subtitle": "Admissions, funding, visa, and pre-departure support in one managed flow.",
+          "richText": "Manage every service page section, card, FAQ, testimonial, gallery item, CTA, and SEO setting from the CMS.",
+          "images": [],
+          "videos": [],
+          "icons": [],
+          "buttonText": "Talk to Advisor",
+          "buttonLink": "/contact",
+          "backgroundColor": "#ffffff",
+          "order": 1,
+          "enabled": true
+        }
+      ],
+      "cards": [
+        {
+          "id": "card-services-1",
+          "image": null,
+          "icon": "GraduationCap",
+          "title": "Admission Counselling",
+          "description": "Shortlist universities and courses with practical guidance.",
+          "link": "/contact",
+          "order": 1,
+          "active": true
+        },
+        {
+          "id": "card-services-2",
+          "image": null,
+          "icon": "Wallet",
+          "title": "Funding Guidance",
+          "description": "Plan fees, documents, and realistic financial support options.",
+          "link": "/contact",
+          "order": 2,
+          "active": true
+        },
+        {
+          "id": "card-services-3",
+          "image": null,
+          "icon": "FileCheck",
+          "title": "Visa Documentation",
+          "description": "Prepare visa paperwork and interview readiness.",
+          "link": "/contact",
+          "order": 3,
+          "active": true
+        }
+      ],
+      "faqs": [
+        {
+          "id": "faq-services-1",
+          "question": "How can NextStep Global help with services?",
+          "answer": "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+          "order": 1
+        }
+      ],
+      "testimonials": [],
+      "gallery": [],
+      "cta": {
+        "heading": "Not sure what to choose?",
+        "description": "Our experts can help you compare options and create a practical application roadmap.",
+        "buttonText": "Talk to Advisor",
+        "buttonLink": "/contact",
+        "backgroundColor": "#07162f"
+      },
+      "footerText": "NextStep Global Educational Services helps students plan practical international education pathways.",
+      "status": "published",
+      "scheduledPublishAt": null,
+      "visible": true,
+      "versionHistory": [],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms-destinations",
+      "title": "Destinations",
+      "slug": "destinations",
+      "url": "/destinations",
+      "seo": {
+        "metaTitle": "Destinations | NextStep Global",
+        "metaDescription": "Use this CMS page to manage destination page hero, SEO, sections, cards, FAQs, gallery, CTA, and footer text.",
+        "metaKeywords": "NextStep Global, Destinations, study abroad, education services",
+        "seoImage": "/nextstep-logo.png"
+      },
+      "hero": {
+        "title": "Compare destinations before you apply.",
+        "subtitle": "Choose the right country based on course fit, budget, work rights, and long-term plans.",
+        "description": "Use this CMS page to manage destination page hero, SEO, sections, cards, FAQs, gallery, CTA, and footer text.",
+        "backgroundImage": null,
+        "backgroundVideo": null,
+        "primaryButtonText": "Ask an Advisor",
+        "primaryButtonLink": "/contact",
+        "secondaryButtonText": "Explore Programs",
+        "secondaryButtonLink": "/programs",
+        "visible": true
+      },
+      "sections": [
+        {
+          "id": "section-destinations-overview",
+          "title": "Destinations",
+          "subtitle": "Choose the right country based on course fit, budget, work rights, and long-term plans.",
+          "richText": "Use this CMS page to manage destination page hero, SEO, sections, cards, FAQs, gallery, CTA, and footer text.",
+          "images": [],
+          "videos": [],
+          "icons": [],
+          "buttonText": "Talk to Advisor",
+          "buttonLink": "/contact",
+          "backgroundColor": "#ffffff",
+          "order": 1,
+          "enabled": true
+        }
+      ],
+      "cards": [
+        {
+          "id": "card-destinations-1",
+          "image": null,
+          "icon": "Flag",
+          "title": "USA",
+          "description": "Research-led universities and STEM pathways.",
+          "link": "/contact",
+          "order": 1,
+          "active": true
+        },
+        {
+          "id": "card-destinations-2",
+          "image": null,
+          "icon": "Flag",
+          "title": "UK",
+          "description": "Fast masters and strong employability.",
+          "link": "/contact",
+          "order": 2,
+          "active": true
+        },
+        {
+          "id": "card-destinations-3",
+          "image": null,
+          "icon": "Flag",
+          "title": "Canada",
+          "description": "Affordable programs and immigration options.",
+          "link": "/contact",
+          "order": 3,
+          "active": true
+        }
+      ],
+      "faqs": [
+        {
+          "id": "faq-destinations-1",
+          "question": "How can NextStep Global help with destinations?",
+          "answer": "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+          "order": 1
+        }
+      ],
+      "testimonials": [],
+      "gallery": [],
+      "cta": {
+        "heading": "Not sure what to choose?",
+        "description": "Our experts can help you compare options and create a practical application roadmap.",
+        "buttonText": "Talk to Advisor",
+        "buttonLink": "/contact",
+        "backgroundColor": "#07162f"
+      },
+      "footerText": "NextStep Global Educational Services helps students plan practical international education pathways.",
+      "status": "published",
+      "scheduledPublishAt": null,
+      "visible": true,
+      "versionHistory": [],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms-consultants",
+      "title": "Consultants",
+      "slug": "consultants",
+      "url": "/consultants",
+      "seo": {
+        "metaTitle": "Consultants | NextStep Global",
+        "metaDescription": "Create consultant page sections, advisor cards, testimonials, FAQs, CTA content, and page SEO from one place.",
+        "metaKeywords": "NextStep Global, Consultants, study abroad, education services",
+        "seoImage": "/nextstep-logo.png"
+      },
+      "hero": {
+        "title": "Meet advisors who understand your next step.",
+        "subtitle": "Connect with destination specialists and admission mentors.",
+        "description": "Create consultant page sections, advisor cards, testimonials, FAQs, CTA content, and page SEO from one place.",
+        "backgroundImage": null,
+        "backgroundVideo": null,
+        "primaryButtonText": "Ask an Advisor",
+        "primaryButtonLink": "/contact",
+        "secondaryButtonText": "Explore Programs",
+        "secondaryButtonLink": "/programs",
+        "visible": true
+      },
+      "sections": [
+        {
+          "id": "section-consultants-overview",
+          "title": "Consultants",
+          "subtitle": "Connect with destination specialists and admission mentors.",
+          "richText": "Create consultant page sections, advisor cards, testimonials, FAQs, CTA content, and page SEO from one place.",
+          "images": [],
+          "videos": [],
+          "icons": [],
+          "buttonText": "Talk to Advisor",
+          "buttonLink": "/contact",
+          "backgroundColor": "#ffffff",
+          "order": 1,
+          "enabled": true
+        }
+      ],
+      "cards": [
+        {
+          "id": "card-consultants-1",
+          "image": null,
+          "icon": "MapPin",
+          "title": "Destination Specialists",
+          "description": "Country-specific guidance for admissions and visas.",
+          "link": "/contact",
+          "order": 1,
+          "active": true
+        },
+        {
+          "id": "card-consultants-2",
+          "image": null,
+          "icon": "ClipboardCheck",
+          "title": "Application Mentors",
+          "description": "Support for SOP, LOR, resume, and application timelines.",
+          "link": "/contact",
+          "order": 2,
+          "active": true
+        }
+      ],
+      "faqs": [
+        {
+          "id": "faq-consultants-1",
+          "question": "How can NextStep Global help with consultants?",
+          "answer": "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+          "order": 1
+        }
+      ],
+      "testimonials": [],
+      "gallery": [],
+      "cta": {
+        "heading": "Not sure what to choose?",
+        "description": "Our experts can help you compare options and create a practical application roadmap.",
+        "buttonText": "Talk to Advisor",
+        "buttonLink": "/contact",
+        "backgroundColor": "#07162f"
+      },
+      "footerText": "NextStep Global Educational Services helps students plan practical international education pathways.",
+      "status": "published",
+      "scheduledPublishAt": null,
+      "visible": true,
+      "versionHistory": [],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms-about",
+      "title": "About",
+      "slug": "about",
+      "url": "/about",
+      "seo": {
+        "metaTitle": "About | NextStep Global",
+        "metaDescription": "Tell your story, highlight values, add media, publish testimonials, and control page SEO from the CMS.",
+        "metaKeywords": "NextStep Global, About, study abroad, education services",
+        "seoImage": "/nextstep-logo.png"
+      },
+      "hero": {
+        "title": "Built for serious study abroad decisions.",
+        "subtitle": "A student-first education consultancy with practical, transparent guidance.",
+        "description": "Tell your story, highlight values, add media, publish testimonials, and control page SEO from the CMS.",
+        "backgroundImage": null,
+        "backgroundVideo": null,
+        "primaryButtonText": "Ask an Advisor",
+        "primaryButtonLink": "/contact",
+        "secondaryButtonText": "Explore Programs",
+        "secondaryButtonLink": "/programs",
+        "visible": true
+      },
+      "sections": [
+        {
+          "id": "section-about-overview",
+          "title": "About",
+          "subtitle": "A student-first education consultancy with practical, transparent guidance.",
+          "richText": "Tell your story, highlight values, add media, publish testimonials, and control page SEO from the CMS.",
+          "images": [],
+          "videos": [],
+          "icons": [],
+          "buttonText": "Talk to Advisor",
+          "buttonLink": "/contact",
+          "backgroundColor": "#ffffff",
+          "order": 1,
+          "enabled": true
+        }
+      ],
+      "cards": [],
+      "faqs": [
+        {
+          "id": "faq-about-1",
+          "question": "How can NextStep Global help with about?",
+          "answer": "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+          "order": 1
+        }
+      ],
+      "testimonials": [],
+      "gallery": [],
+      "cta": {
+        "heading": "Not sure what to choose?",
+        "description": "Our experts can help you compare options and create a practical application roadmap.",
+        "buttonText": "Talk to Advisor",
+        "buttonLink": "/contact",
+        "backgroundColor": "#07162f"
+      },
+      "footerText": "NextStep Global Educational Services helps students plan practical international education pathways.",
+      "status": "published",
+      "scheduledPublishAt": null,
+      "visible": true,
+      "versionHistory": [],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms-contact",
+      "title": "Contact",
+      "slug": "contact",
+      "url": "/contact",
+      "seo": {
+        "metaTitle": "Contact | NextStep Global",
+        "metaDescription": "Manage contact page copy, CTA sections, FAQ, gallery, testimonials, footer text, and SEO settings.",
+        "metaKeywords": "NextStep Global, Contact, study abroad, education services",
+        "seoImage": "/nextstep-logo.png"
+      },
+      "hero": {
+        "title": "Ready to start your assessment?",
+        "subtitle": "Book a free consultation and get a practical roadmap.",
+        "description": "Manage contact page copy, CTA sections, FAQ, gallery, testimonials, footer text, and SEO settings.",
+        "backgroundImage": null,
+        "backgroundVideo": null,
+        "primaryButtonText": "Ask an Advisor",
+        "primaryButtonLink": "/contact",
+        "secondaryButtonText": "Explore Programs",
+        "secondaryButtonLink": "/programs",
+        "visible": true
+      },
+      "sections": [
+        {
+          "id": "section-contact-overview",
+          "title": "Contact",
+          "subtitle": "Book a free consultation and get a practical roadmap.",
+          "richText": "Manage contact page copy, CTA sections, FAQ, gallery, testimonials, footer text, and SEO settings.",
+          "images": [],
+          "videos": [],
+          "icons": [],
+          "buttonText": "Talk to Advisor",
+          "buttonLink": "/contact",
+          "backgroundColor": "#ffffff",
+          "order": 1,
+          "enabled": true
+        }
+      ],
+      "cards": [],
+      "faqs": [
+        {
+          "id": "faq-contact-1",
+          "question": "How can NextStep Global help with contact?",
+          "answer": "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+          "order": 1
+        }
+      ],
+      "testimonials": [],
+      "gallery": [],
+      "cta": {
+        "heading": "Not sure what to choose?",
+        "description": "Our experts can help you compare options and create a practical application roadmap.",
+        "buttonText": "Talk to Advisor",
+        "buttonLink": "/contact",
+        "backgroundColor": "#07162f"
+      },
+      "footerText": "NextStep Global Educational Services helps students plan practical international education pathways.",
+      "status": "published",
+      "scheduledPublishAt": null,
+      "visible": true,
+      "versionHistory": [],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms-portal",
+      "title": "Portal",
+      "slug": "portal",
+      "url": "/portal",
+      "seo": {
+        "metaTitle": "Portal | NextStep Global",
+        "metaDescription": "Edit the portal landing page content and guidance shown before sign-in.",
+        "metaKeywords": "NextStep Global, Portal, study abroad, education services",
+        "seoImage": "/nextstep-logo.png"
+      },
+      "hero": {
+        "title": "Student portal for every application step.",
+        "subtitle": "Track inquiries, programs, documents, appointments, and messages.",
+        "description": "Edit the portal landing page content and guidance shown before sign-in.",
+        "backgroundImage": null,
+        "backgroundVideo": null,
+        "primaryButtonText": "Ask an Advisor",
+        "primaryButtonLink": "/contact",
+        "secondaryButtonText": "Explore Programs",
+        "secondaryButtonLink": "/programs",
+        "visible": true
+      },
+      "sections": [
+        {
+          "id": "section-portal-overview",
+          "title": "Portal",
+          "subtitle": "Track inquiries, programs, documents, appointments, and messages.",
+          "richText": "Edit the portal landing page content and guidance shown before sign-in.",
+          "images": [],
+          "videos": [],
+          "icons": [],
+          "buttonText": "Talk to Advisor",
+          "buttonLink": "/contact",
+          "backgroundColor": "#ffffff",
+          "order": 1,
+          "enabled": true
+        }
+      ],
+      "cards": [
+        {
+          "id": "card-portal-1",
+          "image": null,
+          "icon": "FileText",
+          "title": "Documents",
+          "description": "Upload and track student documents.",
+          "link": "/contact",
+          "order": 1,
+          "active": true
+        },
+        {
+          "id": "card-portal-2",
+          "image": null,
+          "icon": "Calendar",
+          "title": "Appointments",
+          "description": "Manage meetings and reminders.",
+          "link": "/contact",
+          "order": 2,
+          "active": true
+        },
+        {
+          "id": "card-portal-3",
+          "image": null,
+          "icon": "MessageCircle",
+          "title": "Messages",
+          "description": "Stay connected with advisors.",
+          "link": "/contact",
+          "order": 3,
+          "active": true
+        }
+      ],
+      "faqs": [
+        {
+          "id": "faq-portal-1",
+          "question": "How can NextStep Global help with portal?",
+          "answer": "Our advisors explain options, timelines, documents, and next steps based on the student's profile.",
+          "order": 1
+        }
+      ],
+      "testimonials": [],
+      "gallery": [],
+      "cta": {
+        "heading": "Not sure what to choose?",
+        "description": "Our experts can help you compare options and create a practical application roadmap.",
+        "buttonText": "Talk to Advisor",
+        "buttonLink": "/contact",
+        "backgroundColor": "#07162f"
+      },
+      "footerText": "NextStep Global Educational Services helps students plan practical international education pathways.",
+      "status": "published",
+      "scheduledPublishAt": null,
+      "visible": true,
+      "versionHistory": [],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    }
+  ],
+  "scholarships": [
+    {
+      "id": 1,
+      "name": "Global Merit Award",
+      "country": "Canada",
+      "programLevel": "postgraduate",
+      "eligibility": "Strong academics, complete application file, and English proficiency evidence.",
+      "awardValue": "Up to CAD 5,000",
+      "deadline": "2026-09-30",
+      "intake": "January 2027",
+      "applicationLink": "https://nextstepglobal.net/scholarships",
+      "active": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Early Application Tuition Grant",
+      "country": "United Kingdom",
+      "programLevel": "any",
+      "eligibility": "Students applying before priority deadline with complete academic documents.",
+      "awardValue": "GBP 1,000 - 3,000",
+      "deadline": "2026-07-31",
+      "intake": "September 2026",
+      "applicationLink": "https://nextstepglobal.net/scholarships",
+      "active": true,
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    }
+  ],
+  "documentChecklistTemplates": [
+    {
+      "id": 1,
+      "destination": "Canada",
+      "programLevel": "any",
+      "title": "Canada student visa checklist",
+      "items": [
+        {
+          "id": "passport",
+          "label": "Passport",
+          "required": true
+        },
+        {
+          "id": "transcripts",
+          "label": "Academic transcripts",
+          "required": true
+        },
+        {
+          "id": "english-test",
+          "label": "IELTS/PTE/TOEFL score",
+          "required": true
+        },
+        {
+          "id": "financial-proof",
+          "label": "GIC or financial proof",
+          "required": true
+        },
+        {
+          "id": "sop",
+          "label": "Statement of purpose",
+          "required": true
+        }
+      ],
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "destination": "Default",
+      "programLevel": "any",
+      "title": "General study abroad checklist",
+      "items": [
+        {
+          "id": "passport",
+          "label": "Passport",
+          "required": true
+        },
+        {
+          "id": "transcripts",
+          "label": "Academic transcripts",
+          "required": true
+        },
+        {
+          "id": "english-test",
+          "label": "English test score",
+          "required": false
+        },
+        {
+          "id": "sop",
+          "label": "Statement of purpose",
+          "required": true
+        },
+        {
+          "id": "financial-documents",
+          "label": "Financial documents",
+          "required": true
+        }
+      ],
+      "createdAt": "2026-05-12T00:00:00.000Z"
+    }
+  ],
+  "messages": [],
+  "chatConversations": [],
+  "chatMessages": [],
+  "roleMenuAccess": {
+    "admin": [
+      "dashboard",
+      "pages",
+      "content",
+      "inquiries",
+      "pipeline",
+      "appointments",
+      "consultants",
+      "programs",
+      "countries",
+      "gallery",
+      "media",
+      "testimonials",
+      "notifications",
+      "chats",
+      "templates",
+      "documents",
+      "checklists",
+      "auditLogs"
+    ],
+    "userPortal": [
+      "hero",
+      "profile",
+      "inquiries",
+      "programs",
+      "documents",
+      "appointments",
+      "messages"
+    ]
+  }
 }
